@@ -1,0 +1,185 @@
+/*body {
+  font-family: Arial, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  width: 350px;
+  margin: 60px auto;
+  padding: 25px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input,
+textarea {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+button {
+
+  background-color: #007bff;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+p {
+  text-align: center;
+  color: #555;
+  margin-top: 10px;
+}
+
+
+*/
+
+/* Global reset */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #ffffff; /* white background */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* center vertically */
+}
+
+/* Centered login/register container */
+.container {
+  width: 380px;
+  background: #e3f2fd; /* light blue */
+  padding: 35px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  transition: all 0.3s ease-in-out;
+}
+
+.container:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Title */
+h2 {
+  margin-bottom: 25px;
+  color: #0d47a1; /* dark blue */
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Form layout */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Inputs */
+input,
+textarea {
+  padding: 12px 14px;
+  border: 1px solid #bbdefb;
+  border-radius: 6px;
+  background-color: #ffffff;
+  font-size: 15px;
+  color: #0d47a1;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 5px rgba(25, 118, 210, 0.4);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Primary Button */
+button {
+  background-color: #1976d2;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: background-color 0.3s ease, transform 0.2s;
+}
+
+button:hover {
+  background-color: #0d47a1;
+  transform: scale(1.02);
+}
+
+/* Subtext / Links */
+p {
+  color: #0d47a1;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+/* Link-like buttons (for switching pages) */
+.nav-btn {
+  margin-top: 15px;
+  background-color: transparent;
+  border: 1px solid #1976d2;
+  color: #1976d2;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  background-color: #1976d2;
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 450px) {
+  .container {
+    width: 90%;
+    padding: 25px;
+  }
+}
