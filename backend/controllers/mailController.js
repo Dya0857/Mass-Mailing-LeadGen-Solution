@@ -1,31 +1,36 @@
+// controllers/mailController.js
 import nodemailer from "nodemailer";
 
-export const sendMail = async (req, res) => {
-  const { to, subject, body } = req.body;
-
+export const sendBulkMail = async (req, res) => {
   try {
-    // Create reusable transporter
+    const { to, subject, body } = req.body;
+
+    if (!to || !subject || !body) {
+      return res.status(400).json({ message: "All fields required" });
+    }
+
+    // 'to' can be a string (single) or array (bulk)
+    const recipients = Array.isArray(to) ? to : [to];
+
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      service: "gmail", // or SMTP
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,  // Gmail App Password (not normal password)
+        pass: process.env.EMAIL_PASS,
       },
     });
 
-    // Email options
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to,
-      subject,
-      html: body,  // you can also use `text: body` if you want plain text
-    };
+    for (const recipient of recipients) {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: recipient,
+        subject,
+        text: body,
+      });
+    }
 
-    // Send the mail
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: "Mail sent successfully!" });
-  } catch (error) {
-    console.error("Mail send error:", error);
-    res.status(500).json({ message: "Failed to send mail", error });
+    res.status(200).json({ message: "Emails sent successfully!" });
+  } catch (err) {
+    res.status(500).json({ message: "Error sending emails", error: err.message });
   }
 };
