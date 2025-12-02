@@ -1,0 +1,44 @@
+.auth-container {
+  height: 100vh;
+  background: #eef3ff;
+  padding: 20px;
+}
+
+.auth-card {
+  width: 400px;
+  background: #fff;
+  border-radius: 14px;
+}
+
+.auth-btn {
+  background: #4b6bfb;
+  color: white;
+  font-weight: 600;
+  height: 45px;
+  border-radius: 8px;
+}
+
+.auth-btn:hover {
+  background: #3a56d8;
+}
+
+.switch-text {
+  font-size: 14px;
+  color: #444;
+}
+
+.switch-link {
+  font-weight: 600;
+  cursor: pointer;
+  color: #4b6bfb;
+}
+
+.switch-link:hover {
+  text-decoration: underline;
+}
+
+.msg {
+  font-size: 14px;
+  color: #2a4ded;
+  font-weight: 500;
+}
