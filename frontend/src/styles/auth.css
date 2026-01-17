@@ -1,0 +1,171 @@
+/* ===== RESET ===== */
+* {
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ===== MAIN WRAPPER ===== */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  background: #f8f9fb;
+}
+
+/* ===== LEFT PANEL ===== */
+.login-left {
+  width: 45%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+}
+
+/* ===== LOGIN CARD ===== */
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== BRANDING ===== */
+.branding {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.branding h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.branding p {
+  margin: 0;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+/* ===== FORM ===== */
+.login-box label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  font-size: 14px;
+  transition: border 0.2s ease;
+}
+
+.login-box input:focus {
+  outline: none;
+  border-color: #0d6efd;
+}
+
+/* ===== BUTTON ===== */
+.btn-main {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-main:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ===== SIGNUP TEXT ===== */
+.signup-text {
+  margin-top: 16px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: rgb(37, 101, 240);          /* 🔥 make it white */
+  margin-left: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0;
+}
+
+/* 🔥 Force white on hover */
+.link-btn:hover,
+.link-btn:focus,
+.link-btn:active {
+  color: rgb(37, 101, 240);
+  background: none;
+  outline: none;
+  text-decoration: underline; /* optional */
+}
+
+
+/* ===== RIGHT PANEL ===== */
+.login-right {
+  width: 55%;
+  padding: 80px 60px;
+  background: linear-gradient(135deg, #0d6efd, #6610f2);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-right h1 {
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+/* ===== FEATURE CARDS ===== */
+.feature-card {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .login-wrapper {
+    flex-direction: column;
+  }
+
+  .login-left,
+  .login-right {
+    width: 100%;
+  }
+
+  .login-right {
+    padding: 50px 30px;
+    text-align: center;
+  }
+}

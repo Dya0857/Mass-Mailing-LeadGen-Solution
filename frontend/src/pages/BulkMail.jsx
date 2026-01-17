@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../api";
+import api from "../service/api";
 import "../App.css";
 
 export default function BulkMail() {

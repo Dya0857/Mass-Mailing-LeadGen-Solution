@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import api from "../api";
+import api from "../service/api";
 
 export default function SendMail() {
   const [mail, setMail] = useState({ to: "", subject: "", body: "" });

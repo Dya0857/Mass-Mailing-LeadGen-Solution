@@ -13,7 +13,17 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      // Only required for non-Google users
+      required: function () {
+        return !this.googleAuth;
+      },
+    },
+    googleAuth: {
+      type: Boolean,
+      default: false,
+    },
+    avatar: {
+      type: String,
     },
   },
   { timestamps: true }

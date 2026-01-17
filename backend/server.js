@@ -2,9 +2,13 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
+
 import authRoutes from "./routes/authRoutes.js";
-import templateRoutes from "./routes/templateRoutes.js";
-import mailRoutes from "./routes/mailRoutes.js";
+import googleAuthRoutes from "./routes/googleAuthRoutes.js";
+import campaignRoutes from "./routes/campaignRoutes.js";
+
+import emailListRoutes from "./routes/emailListRoutes.js";
+
 
 dotenv.config();
 connectDB();
@@ -13,14 +17,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Default route
-app.get("/", (req, res) => res.send("Mailing Prototype API Running"));
+app.get("/", (req, res) => res.send("MailMaster API Running"));
 
-// API routes
 app.use("/api/auth", authRoutes);
-app.use("/api/templates", templateRoutes);
-app.use("/api/mail", mailRoutes);
+app.use("/api/auth/google", googleAuthRoutes);
+app.use("/api/campaign", campaignRoutes);
+app.use("/api/email-lists", emailListRoutes);
 
-// Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Server running on port ${PORT}`)
+);

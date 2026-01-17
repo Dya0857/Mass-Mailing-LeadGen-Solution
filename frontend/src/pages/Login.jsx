@@ -1,38 +1,66 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Mail, ShieldCheck, CheckCircle2, BarChart2 } from "lucide-react";
-import api from "../api";  // REQUIRED BACKEND CONNECT
-import Register from "./Register";
-import "./styles/auth.css";
+import { GoogleLogin } from "@react-oauth/google";
+import api from "../service/api";
+import "../styles/auth.css";
 
+export default function Login() {
+  const navigate = useNavigate();
 
-export default function Login({ onLogin, setPage}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // ===== LOGIN HANDLER (BACKEND CONNECTED) ===== //
+  // EMAIL / PASSWORD LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
+    setMsg("");
+    setLoading(true);
+
     try {
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
-
-      setMsg("Login successful");
-      onLogin(); // NAVIGATE TO DASHBOARD
+      navigate("/dashboard");
     } catch (err) {
       setMsg(err.response?.data?.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // GOOGLE LOGIN
+  const handleGoogleLogin = async (response) => {
+    if (!response?.credential) {
+      setMsg("Google login failed");
+      return;
+    }
+
+    setMsg("");
+    setLoading(true);
+
+    try {
+      const res = await api.post("/auth/google", {
+        credential: response.credential,
+      });
+      localStorage.setItem("token", res.data.token);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setMsg("Google login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-wrapper">
-        
-      {/* LEFT PANEL */}
+      {/* LEFT */}
       <div className="login-left">
         <form className="login-box" onSubmit={handleLogin}>
-
           <div className="branding">
-            <Mail size={42} strokeWidth={1.7} />
+            <Mail size={42} />
             <div>
               <h2>MailMaster</h2>
               <p>Lead Generation Solution for SMEs</p>
@@ -42,7 +70,6 @@ export default function Login({ onLogin, setPage}) {
           <label>Email Address</label>
           <input
             type="email"
-            placeholder="john@company.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -51,63 +78,51 @@ export default function Login({ onLogin, setPage}) {
           <label>Password</label>
           <input
             type="password"
-            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
 
-          <div className="options">
-            <label className="remember">
-              <input type="checkbox" />
-              <span>Remember me</span>
-            </label>
+          <button className="btn-main" disabled={loading}>
+            {loading ? "Signing in..." : "Sign In →"}
+          </button>
 
-            <a href="#" className="forgot">Forgot Password?</a>
-          </div>
+          <div style={{ textAlign: "center", margin: "10px 0" }}>OR</div>
 
-          <button type="submit" className="btn-main">Sign In →</button>
+          <GoogleLogin
+            onSuccess={handleGoogleLogin}
+            onError={() => setMsg("Google login failed")}
+          />
+
+          {msg && <p style={{ color: "crimson" }}>{msg}</p>}
+
           <p className="signup-text">
-  Don't have an account?
-  <button 
-    type="button"
-    onClick={() => setPage("register")} 
-    style={{ background: "none", border: 0, color: "#007bff", cursor: "pointer" }}
-  >
-    Sign up free
-  </button>
-</p>
-
-          {msg && <p style={{ marginTop: 10, color: "crimson" }}>{msg}</p>} 
+            Don’t have an account?
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              className="link-btn"
+            >
+              Sign up free
+            </button>
+          </p>
         </form>
       </div>
 
-
-      {/* RIGHT PANEL */}
+      {/* RIGHT */}
       <div className="login-right">
-        <h1>Safe & Reliable <br /> Email Marketing</h1>
-
-        <p className="sub-text">
-          Send bulk emails without worrying about blacklists or spam filters.
-          Optimized delivery means more inbox hits and better conversions.
-        </p>
+        <h1>Safe & Reliable Email Marketing</h1>
 
         <div className="feature-card">
           <ShieldCheck size={20} /> Spam Protection
-          <p>Keep your domain reputation intact</p>
         </div>
-
         <div className="feature-card">
-          <CheckCircle2 size={20} /> Verified Email Delivery
-          <p>Reduce bounce, increase inbox placement</p>
+          <CheckCircle2 size={20} /> Verified Delivery
         </div>
-
         <div className="feature-card">
           <BarChart2 size={20} /> Real-time Analytics
-          <p>Track clicks, opens, and engagement</p>
         </div>
       </div>
-
     </div>
   );
 }
