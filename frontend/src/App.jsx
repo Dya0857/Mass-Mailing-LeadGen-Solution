@@ -6,10 +6,8 @@ import Register from "./pages/Register";
 
 // Protected Pages
 import Dashboard from "./pages/Dashboard";
-import SendMail from "./pages/SendMail";
-import BulkMail from "./pages/BulkMail";
 import CampaignPage from "./pages/CampaignPage";
-import CreateCampaign from "./pages/CreateCampaign";
+import { EmailVerifierPage } from "./pages/EmailVerifier";
 
 // Layout & Route Guard
 import Layout from "./components/Layout";
@@ -26,12 +24,10 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/send-mail" element={<SendMail />} />
-          <Route path="/bulk-mail" element={<BulkMail />} />
 
           {/* Campaign Routes */}
           <Route path="/campaigns" element={<CampaignPage />} />
-          <Route path="/campaigns/create" element={<CreateCampaign />} />
+          <Route path="/email-verifier" element={<EmailVerifierPage />} />
         </Route>
       </Route>
 

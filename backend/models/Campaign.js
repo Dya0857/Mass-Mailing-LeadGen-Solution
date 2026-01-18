@@ -21,8 +21,7 @@ const campaignSchema = new mongoose.Schema(
 
     // ✅ CORRECT WAY
     emailList: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "EmailList",
+      type: String,
       required: true,
     },
 

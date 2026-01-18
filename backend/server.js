@@ -6,9 +6,8 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import googleAuthRoutes from "./routes/googleAuthRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes.js";
-
 import emailListRoutes from "./routes/emailListRoutes.js";
-
+import aiRoutes from "./routes/geminiRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -23,6 +22,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/auth/google", googleAuthRoutes);
 app.use("/api/campaign", campaignRoutes);
 app.use("/api/email-lists", emailListRoutes);
+app.use("/api/ai", aiRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
