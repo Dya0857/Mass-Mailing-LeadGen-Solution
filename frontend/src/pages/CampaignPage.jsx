@@ -3,10 +3,13 @@ import api from "../service/api";
 import "../styles/CreateCampaign.css";
 
 export default function CreateCampaign() {
+  // ===== Modes & Messages =====
   const [mode, setMode] = useState("manual");
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
+  // ===== Campaign Form =====
   const [form, setForm] = useState({
     name: "",
     subject: "",
@@ -18,10 +21,49 @@ export default function CreateCampaign() {
     scheduleTime: "",
   });
 
+  // ===== AI Form =====
+  const [aiForm, setAiForm] = useState({
+    product: "",
+    audience: "",
+    goal: "",
+    tone: "professional",
+    length: "medium",
+  });
+
+  // ===== Handlers =====
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleAIChange = (e) => {
+    setAiForm({ ...aiForm, [e.target.name]: e.target.value });
+  };
+
+  // ===== AI Generate =====
+  const handleGenerateAI = async () => {
+    setAiLoading(true);
+    setMsg("");
+
+    try {
+      const res = await api.post("/ai/generate-campaign", aiForm);
+      const text = res.data.content || "";
+
+      const subjectMatch = text.match(/Subject:\s*(.*)/i);
+      const bodyMatch = text.match(/Body:\s*([\s\S]*)/i);
+
+      setForm((prev) => ({
+        ...prev,
+        subject: subjectMatch ? subjectMatch[1].trim() : prev.subject,
+        content: bodyMatch ? bodyMatch[1].trim() : prev.content,
+      }));
+    } catch (err) {
+      setMsg("❌ AI generation failed");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // ===== Submit Campaign =====
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -35,12 +77,13 @@ export default function CreateCampaign() {
 
       setMsg("✅ Campaign scheduled successfully");
     } catch (err) {
-      setMsg(err.response?.data?.message || "Failed to create campaign");
+      setMsg(err.response?.data?.message || "❌ Failed to create campaign");
     } finally {
       setLoading(false);
     }
   };
 
+  // ===== UI =====
   return (
     <div className="campaign-page">
       <div className="campaign-container">
@@ -50,9 +93,8 @@ export default function CreateCampaign() {
           <p>Design and schedule your email marketing campaign</p>
         </div>
 
-        {/* Card */}
         <div className="campaign-card">
-          {/* Mode */}
+          {/* Mode Toggle */}
           <p className="section-label">Campaign Mode</p>
           <div className="mode-toggle">
             <button
@@ -71,63 +113,119 @@ export default function CreateCampaign() {
             </button>
           </div>
 
-          {/* Form */}
+          {/* ===== AI PANEL ===== */}
+          {mode === "ai" && (
+            <div className="ai-panel">
+              <h3>✨ AI Campaign Builder</h3>
+              <p className="ai-subtext">
+                Generate subject & content using AI. You can edit before saving.
+              </p>
+
+              <div className="ai-grid">
+                <div className="form-group">
+                  <label>Product / Service</label>
+                  <input
+                    type="text"
+                    name="product"
+                    value={aiForm.product}
+                    onChange={handleAIChange}
+                    placeholder="e.g. AI Email Marketing Tool"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Target Audience</label>
+                  <input
+                    type="text"
+                    name="audience"
+                    value={aiForm.audience}
+                    onChange={handleAIChange}
+                    placeholder="e.g. Startup founders"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Campaign Goal</label>
+                  <input
+                    type="text"
+                    name="goal"
+                    value={aiForm.goal}
+                    onChange={handleAIChange}
+                    placeholder="e.g. Lead generation"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Tone</label>
+                  <select
+                    name="tone"
+                    value={aiForm.tone}
+                    onChange={handleAIChange}
+                  >
+                    <option value="professional">Professional</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="persuasive">Persuasive</option>
+                    <option value="casual">Casual</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="ai-generate-btn"
+                onClick={handleGenerateAI}
+                disabled={aiLoading}
+              >
+                {aiLoading ? "Generating..." : "✨ Generate with AI"}
+              </button>
+            </div>
+          )}
+
+          {/* ===== FORM ===== */}
           <form onSubmit={handleSubmit}>
-            {/* Campaign Name */}
             <div className="form-group">
               <label>Campaign Name</label>
               <input
                 type="text"
                 name="name"
-                placeholder="e.g. Summer Sale Campaign"
                 value={form.name}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            {/* Email List */}
             <div className="form-group">
               <label>Email List</label>
               <input
                 type="text"
                 name="emailList"
-                placeholder="Select or upload email list"
                 value={form.emailList}
                 onChange={handleChange}
                 required
               />
             </div>
 
-            {/* Subject */}
             <div className="form-group">
               <label>Email Subject</label>
               <input
                 type="text"
                 name="subject"
-                placeholder="Enter subject line"
                 value={form.subject}
                 onChange={handleChange}
                 required
               />
-              <p className="helper-text">
-                Recommended: under 60 characters
-              </p>
             </div>
 
-            {/* Preview Text */}
             <div className="form-group">
               <label>Preview Text</label>
               <input
                 type="text"
                 name="previewText"
-                placeholder="Appears next to subject in inbox"
                 value={form.previewText}
                 onChange={handleChange}
               />
             </div>
 
-            {/* Sender */}
             <div className="form-group">
               <label>Sender Name</label>
               <input
@@ -139,25 +237,18 @@ export default function CreateCampaign() {
               />
             </div>
 
-            {/* Content */}
             <div className="form-group">
               <label>Email Content</label>
               <textarea
                 name="content"
                 rows="6"
-                placeholder="Write your email content here..."
                 value={form.content}
                 onChange={handleChange}
+                disabled={aiLoading}
                 required
               />
-              <div className="editor-actions">
-                <button type="button">Add Image</button>
-                <button type="button">Add Link</button>
-                <button type="button">Insert Variable</button>
-              </div>
             </div>
 
-            {/* Schedule */}
             <div className="schedule-grid">
               <div className="form-group">
                 <label>Schedule Date</label>
@@ -180,7 +271,6 @@ export default function CreateCampaign() {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="campaign-footer">
               <button type="button" className="test-btn">
                 Send Test Email
