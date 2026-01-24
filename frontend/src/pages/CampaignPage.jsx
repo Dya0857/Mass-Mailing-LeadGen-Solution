@@ -400,14 +400,16 @@ export default function CampaignPage() {
                     )}
 
                     <div className="d-flex gap-3 pt-3">
-                      <button
-                        className="btn btn-primary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center"
-                        onClick={handleSubmit}
-                        disabled={loading}
-                      >
-                        {loading ? <Loader2 size={18} className="me-2 animate-spin" /> : <Send size={18} className="me-2" />}
-                        {loading ? "Scheduling..." : "Schedule Campaign"}
-                      </button>
+                      {activeTab !== 'ai' && (
+                        <button
+                          className="btn btn-primary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center"
+                          onClick={handleSubmit}
+                          disabled={loading}
+                        >
+                          {loading ? <Loader2 size={18} className="me-2 animate-spin" /> : <Send size={18} className="me-2" />}
+                          {loading ? "Scheduling..." : "Schedule Campaign"}
+                        </button>
+                      )}
                       <button
                         className="btn btn-success px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center text-white border-0"
                         onClick={handleSendNow}
@@ -417,9 +419,11 @@ export default function CampaignPage() {
                         {sendingNow ? <Loader2 size={18} className="me-2 animate-spin" /> : <Send size={18} className="me-2" />}
                         {sendingNow ? "Sending..." : "Send Mails Now"}
                       </button>
-                      <button className="btn btn-outline-secondary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center">
-                        <TestTube size={18} className="me-2" /> Send Test
-                      </button>
+                      {activeTab !== 'ai' && (
+                        <button className="btn btn-outline-secondary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center">
+                          <TestTube size={18} className="me-2" /> Send Test
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
