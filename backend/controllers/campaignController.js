@@ -1,4 +1,40 @@
 import Campaign from "../models/Campaign.js";
+import { sendMail } from "../utils/mailer.js";
+
+/**
+ * HELPER: Send mails with randomized variations
+ */
+export const sendCampaignMails = async (campaign) => {
+  const { recipients, variations } = campaign;
+  const results = { success: [], failure: [] };
+
+  if (!recipients || recipients.length === 0) return results;
+
+  console.log(`🚀 Starting campaign "${campaign.name}" with ${variations.length} variations for ${recipients.length} recipients.`);
+
+  for (const email of recipients) {
+    // Pick a random variation if available
+    let subject = campaign.subject;
+    let body = campaign.content;
+    let varIdx = -1;
+
+    if (variations && variations.length > 0) {
+      varIdx = Math.floor(Math.random() * variations.length);
+      subject = variations[varIdx].subject || subject;
+      body = variations[varIdx].body || body;
+    }
+
+    try {
+      await sendMail(email, subject, body);
+      results.success.push(email);
+      console.log(`✅ Sent (Var ${varIdx + 1}) to: ${email}`);
+    } catch (err) {
+      results.failure.push({ email, error: err.message });
+      console.error(`❌ Failed (Var ${varIdx + 1}) to: ${email}:`, err.message);
+    }
+  }
+  return results;
+};
 
 /**
  * CREATE CAMPAIGN (Draft / Scheduled)
@@ -12,6 +48,7 @@ export const createCampaign = async (req, res) => {
       previewText,
       senderName,
       content,
+      variations,
       emailList,
       scheduleDate,
       scheduleTime,
@@ -36,6 +73,7 @@ export const createCampaign = async (req, res) => {
       previewText,
       senderName,
       content,
+      variations,
       emailList,
       scheduleAt,
       status,
@@ -81,4 +119,58 @@ export const sendTestEmail = async (req, res) => {
   console.log("Sending test email to:", testEmail);
 
   res.json({ message: "Test email sent successfully" });
+};
+
+/**
+ * SEND NOW (Immediate Send)
+ */
+export const sendNow = async (req, res) => {
+  try {
+    const {
+      name,
+      mode,
+      subject,
+      senderName,
+      content,
+      variations,
+      recipients,
+    } = req.body;
+
+    if (!name || !senderName || !recipients || recipients.length === 0) {
+      return res.status(400).json({ message: "Required fields missing (name, senderName, recipients)" });
+    }
+
+    const campaign = await Campaign.create({
+      name,
+      mode,
+      subject: subject || (variations && variations[0] ? variations[0].subject : ""),
+      senderName,
+      content: content || (variations && variations[0] ? variations[0].body : ""),
+      variations,
+      recipients,
+      status: "sending",
+      emailList: "CSV_UPLOAD", // Placeholder for emailList link
+      createdBy: req.user.id,
+    });
+
+    // Run sending in "background" (not really backround but for now)
+    // We don't await so the user gets a response quickly? 
+    // Actually, user expects a button to "Send Mails", let's await it for a small list, or just start it.
+    // For small lists, await is fine. For large, we need a job.
+    // Since this is a "send mails" button on UI, let's await so we can show success.
+
+    const results = await sendCampaignMails(campaign);
+
+    campaign.status = "completed";
+    await campaign.save();
+
+    res.status(200).json({
+      message: "Campaign process finished",
+      results,
+      campaign,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Campaign sending failed" });
+  }
 };

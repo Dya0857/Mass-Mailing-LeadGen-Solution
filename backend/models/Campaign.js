@@ -19,11 +19,25 @@ const campaignSchema = new mongoose.Schema(
 
     content: { type: String, required: true },
 
+    variations: [
+      {
+        subject: { type: String, required: true },
+        body: { type: String, required: true },
+      }
+    ],
+
     // ✅ CORRECT WAY
     emailList: {
       type: String,
       required: true,
     },
+
+    recipients: [
+      {
+        type: String,
+        required: true,
+      }
+    ],
 
     scheduleAt: { type: Date, default: null },
 

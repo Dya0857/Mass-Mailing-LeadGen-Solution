@@ -1,35 +1,49 @@
 import { generateWithGemini } from "../utils/gemini.js";
 
 export const generateCampaignAI = async (req, res) => {
-  const { product, audience, goal, tone = "professional", length = "medium" } = req.body;
+  const {
+    context,
+    audience,
+    keywords,
+    tone = "Professional",
+    campaignType = "promotion",
+    variationCount = 3
+  } = req.body;
 
-  if (!product || !audience || !goal) {
+  if (!context || !audience) {
     return res.status(400).json({
-      message: "product, audience and goal are required"
+      message: "Context and audience are required"
     });
   }
 
   const prompt = `
 You are an expert email marketing copywriter.
 
-Create a marketing email campaign with:
-Product: ${product}
+Generate ${variationCount} distinct versions of a ${campaignType} email for the following campaign:
+Context/Purpose: ${context}
 Target Audience: ${audience}
-Campaign Goal: ${goal}
+Keywords to include: ${keywords}
 Tone: ${tone}
-Length: ${length}
 
-Return the response strictly in this format:
-Subject:
-<subject line>
+Requirements:
+1. Each version must have a unique, catchy subject line.
+2. Each version must have a completely different structure and opening to avoid spam filters.
+3. Keep the content concise and high-converting.
 
-Body:
-<email body>
+Return the response strictly as a valid JSON array of objects with the following format:
+[
+  {
+    "subject": "Variation subject",
+    "body": "Variation body text"
+  }
+]
 `;
 
   try {
-    const content = await generateWithGemini(prompt);
-    res.json({ content });
+    const rawContent = await generateWithGemini(prompt);
+    const jsonStr = rawContent.replace(/```json|```/g, "").trim();
+    const variations = JSON.parse(jsonStr);
+    res.json({ variations });
   } catch (err) {
     console.error("Gemini error:", err.message);
     res.status(500).json({ message: "AI generation failed" });

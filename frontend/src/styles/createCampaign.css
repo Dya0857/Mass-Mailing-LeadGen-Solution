@@ -176,7 +176,61 @@
   cursor: not-allowed;
 }
 
-/* Status message */
+/* AI Panel */
+.ai-panel {
+  margin-top: 20px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.ai-panel h3 {
+  font-size: 16px;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.ai-subtext {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.ai-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.ai-generate-btn {
+  width: 100%;
+  margin-top: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Variations Section */
+.variations-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 2px solid #f1f5f9;
+}
+
+.variation-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
 .status-msg {
   text-align: center;
   margin-top: 16px;

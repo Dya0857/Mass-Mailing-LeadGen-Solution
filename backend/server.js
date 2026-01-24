@@ -1,5 +1,6 @@
+import 'dotenv/config';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import express from "express";
-import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 
@@ -9,7 +10,7 @@ import campaignRoutes from "./routes/campaignRoutes.js";
 import emailListRoutes from "./routes/emailListRoutes.js";
 import aiRoutes from "./routes/geminiRoutes.js";
 
-dotenv.config();
+// dotenv.config() removed as it is handled by import 'dotenv/config'
 connectDB();
 
 const app = express();
