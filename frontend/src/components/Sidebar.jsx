@@ -28,11 +28,10 @@ export default function Sidebar() {
         {/* Dashboard */}
         <li className="nav-item">
           <button
-            className={`nav-link text-start ${
-              isActive("/dashboard")
-                ? "bg-white text-primary"
-                : "text-white"
-            }`}
+            className={`nav-link text-start ${isActive("/dashboard")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
             onClick={() => navigate("/dashboard")}
           >
             🏠 Dashboard
@@ -42,11 +41,10 @@ export default function Sidebar() {
         {/* Campaigns */}
         <li className="nav-item">
           <button
-            className={`nav-link text-start ${
-              isActive("/campaigns")
-                ? "bg-white text-primary"
-                : "text-white"
-            }`}
+            className={`nav-link text-start ${isActive("/campaigns")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
             onClick={() => navigate("/campaigns")}
           >
             ✉️ Campaigns
@@ -56,25 +54,36 @@ export default function Sidebar() {
         {/* Email Verifier */}
         <li className="nav-item">
           <button
-            className={`nav-link text-start ${
-              isActive("/email-verifier")
-                ? "bg-white text-primary"
-                : "text-white"
-            }`}
+            className={`nav-link text-start ${isActive("/email-verifier")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
             onClick={() => navigate("/email-verifier")}
           >
             ✔ Email Verifier
           </button>
         </li>
 
+        {/* Sender Config */}
+        <li className="nav-item">
+          <button
+            className={`nav-link text-start ${isActive("/ses-config")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
+            onClick={() => navigate("/ses-config")}
+          >
+            📧 Sender Config
+          </button>
+        </li>
+
         {/* Lead Generator */}
         <li className="nav-item">
           <button
-            className={`nav-link text-start ${
-              isActive("/lead-generator")
-                ? "bg-white text-primary"
-                : "text-white"
-            }`}
+            className={`nav-link text-start ${isActive("/lead-generator")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
             onClick={() => navigate("/lead-generator")}
           >
             👥 Lead Generator
@@ -84,25 +93,36 @@ export default function Sidebar() {
         {/* Reports */}
         <li className="nav-item">
           <button
-            className={`nav-link text-start ${
-              isActive("/reports")
-                ? "bg-white text-primary"
-                : "text-white"
-            }`}
+            className={`nav-link text-start ${isActive("/reports")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
             onClick={() => navigate("/reports")}
           >
             📊 Reports
           </button>
         </li>
 
+        {/* Profile */}
+        <li className="nav-item">
+          <button
+            className={`nav-link text-start ${isActive("/edit-profile")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
+            onClick={() => navigate("/edit-profile")}
+          >
+            👤 Profile
+          </button>
+        </li>
+
         {/* Settings */}
         <li className="nav-item">
           <button
-            className={`nav-link text-start ${
-              isActive("/settings")
-                ? "bg-white text-primary"
-                : "text-white"
-            }`}
+            className={`nav-link text-start ${isActive("/settings")
+              ? "bg-white text-primary"
+              : "text-white"
+              }`}
             onClick={() => navigate("/settings")}
           >
             ⚙ Settings

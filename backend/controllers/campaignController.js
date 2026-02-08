@@ -4,13 +4,13 @@ import { sendMail } from "../utils/mailer.js";
 /**
  * HELPER: Send mails with randomized variations
  */
-export const sendCampaignMails = async (campaign) => {
-  const { recipients, variations } = campaign;
+export const sendCampaignMails = async (campaign, userId) => {
+  const { recipients, variations, emailProvider = 'gmail', senderName } = campaign;
   const results = { success: [], failure: [] };
 
   if (!recipients || recipients.length === 0) return results;
 
-  console.log(`🚀 Starting campaign "${campaign.name}" with ${variations.length} variations for ${recipients.length} recipients.`);
+  console.log(`🚀 Starting campaign "${campaign.name}" with ${variations.length} variations for ${recipients.length} recipients via ${emailProvider.toUpperCase()}.`);
 
   for (const email of recipients) {
     // Pick a random variation if available
@@ -25,12 +25,16 @@ export const sendCampaignMails = async (campaign) => {
     }
 
     try {
-      await sendMail(email, subject, body);
+      await sendMail(email, subject, body, {
+        provider: emailProvider,
+        userId: userId,
+        senderName: senderName || 'MailMaster'
+      });
       results.success.push(email);
-      console.log(`✅ Sent (Var ${varIdx + 1}) to: ${email}`);
+      console.log(`✅ Sent (Var ${varIdx + 1}) via ${emailProvider.toUpperCase()} to: ${email}`);
     } catch (err) {
       results.failure.push({ email, error: err.message });
-      console.error(`❌ Failed (Var ${varIdx + 1}) to: ${email}:`, err.message);
+      console.error(`❌ Failed (Var ${varIdx + 1}) via ${emailProvider.toUpperCase()} to: ${email}:`, err.message);
     }
   }
   return results;
@@ -52,6 +56,7 @@ export const createCampaign = async (req, res) => {
       emailList,
       scheduleDate,
       scheduleTime,
+      emailProvider = 'gmail',
     } = req.body;
 
     if (!name || !subject || !senderName || !content || !emailList) {
@@ -77,6 +82,7 @@ export const createCampaign = async (req, res) => {
       emailList,
       scheduleAt,
       status,
+      emailProvider,
       createdBy: req.user.id,
     });
 
@@ -134,6 +140,7 @@ export const sendNow = async (req, res) => {
       content,
       variations,
       recipients,
+      emailProvider = 'gmail',
     } = req.body;
 
     if (!name || !senderName || !recipients || recipients.length === 0) {
@@ -150,6 +157,7 @@ export const sendNow = async (req, res) => {
       recipients,
       status: "sending",
       emailList: "CSV_UPLOAD", // Placeholder for emailList link
+      emailProvider,
       createdBy: req.user.id,
     });
 
@@ -159,7 +167,7 @@ export const sendNow = async (req, res) => {
     // For small lists, await is fine. For large, we need a job.
     // Since this is a "send mails" button on UI, let's await so we can show success.
 
-    const results = await sendCampaignMails(campaign);
+    const results = await sendCampaignMails(campaign, req.user.id);
 
     campaign.status = "completed";
     await campaign.save();

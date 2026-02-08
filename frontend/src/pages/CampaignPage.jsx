@@ -41,16 +41,23 @@ export default function CampaignPage() {
     scheduleDate: "",
     scheduleTime: "",
     recipients: [],
+    emailProvider: "gmail", // Add email provider selection
   });
 
-  // AI Form State
-  const [aiFormData, setAiFormData] = useState({
-    audience: '',
-    tone: 'Professional',
-    keywords: '',
-    context: '',
-    campaignType: 'promotion',
-    variationCount: 3
+
+  const [aiFormData, setAiFormData] = useState(() => {
+    // Load default variation count from settings
+    const savedSettings = JSON.parse(
+      localStorage.getItem("aiSettings") || '{"defaultVariationCount": 7}'
+    );
+    return {
+      audience: '',
+      tone: 'Professional',
+      keywords: '',
+      context: '',
+      campaignType: 'promotion',
+      variationCount: savedSettings.defaultVariationCount || 7
+    };
   });
 
   // Email Verifier Mock Data
@@ -202,7 +209,15 @@ export default function CampaignPage() {
       };
 
       const res = await api.post("/campaign/send-now", payload);
-      setStatusMsg(`✅ ${res.data.message}`);
+      const { results } = res.data;
+
+      if (results) {
+        const successCount = results.success?.length || 0;
+        const failureCount = results.failure?.length || 0;
+        setStatusMsg(`✅ Campaign finished: ${successCount} sent, ${failureCount} failed.`);
+      } else {
+        setStatusMsg(`✅ ${res.data.message}`);
+      }
     } catch (err) {
       setStatusMsg(err.response?.data?.message || "❌ Failed to send mails");
     } finally {
@@ -306,6 +321,25 @@ export default function CampaignPage() {
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                     />
+                  </div>
+
+                  {/* Email Provider Selection */}
+                  <div>
+                    <label className="form-label fw-medium small">Email Provider</label>
+                    <select
+                      className="form-select"
+                      value={form.emailProvider}
+                      onChange={(e) => setForm({ ...form, emailProvider: e.target.value })}
+                    >
+                      <option value="gmail">Gmail (Default)</option>
+                      <option value="zoho">Zoho Mail</option>
+                    </select>
+                    {form.emailProvider === 'zoho' && (
+                      <p className="small text-info mt-1 mb-0">
+                        <AlertCircle size={12} className="me-1" />
+                        Make sure your Zoho account is connected in Settings
+                      </p>
+                    )}
                   </div>
 
                   {/* CSV Upload */}

@@ -7,7 +7,7 @@ export const generateCampaignAI = async (req, res) => {
     keywords,
     tone = "Professional",
     campaignType = "promotion",
-    variationCount = 3
+    variationCount = 7
   } = req.body;
 
   if (!context || !audience) {

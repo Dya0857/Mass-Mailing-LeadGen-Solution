@@ -47,6 +47,12 @@ const campaignSchema = new mongoose.Schema(
       default: "draft",
     },
 
+    emailProvider: {
+      type: String,
+      enum: ["gmail", "zoho"],
+      default: "gmail",
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

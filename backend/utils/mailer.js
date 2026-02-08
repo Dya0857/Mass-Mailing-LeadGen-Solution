@@ -17,10 +17,8 @@ console.log('Email User status:', emailUser ? 'Creds Loaded ✅' : 'Creds NOT Fo
  * HELPER: Convert plain text/markdown to branded HTML
  */
 const formatEmailContent = (content) => {
-  // 1. Basic Markdown: Bold (**text**)
   let formatted = content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
 
-  // 2. Extract CTA Buttons [CTA Button: Text]
   formatted = formatted.replace(/\[CTA Button: (.*?)\]/gi, (match, btnText) => {
     return `
       <div style="text-align: center; margin: 30px 0;">
@@ -31,14 +29,12 @@ const formatEmailContent = (content) => {
     `;
   });
 
-  // 3. Handle Newlines (convert to <br/>), support \r\n
   formatted = formatted.replace(/\r?\n/g, '<br/>');
 
-  // 4. Wrap in a professional HTML template
   return `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #fcfcfc;">
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
       <div style="background-color: #00695C; padding: 25px; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 24px;">Event Invitation</h1>
+        <h1 style="color: white; margin: 0; font-size: 24px;">Email Campaign</h1>
       </div>
       <div style="padding: 40px; background-color: #ffffff;">
         <div style="font-size: 16px; color: #444; text-align: left;">
@@ -46,9 +42,8 @@ const formatEmailContent = (content) => {
         </div>
       </div>
       <div style="background-color: #f4f4f4; padding: 20px; text-align: center; border-top: 1px solid #eee; font-size: 11px; color: #777;">
-        <p style="margin: 0;">Sent via <b>MailMaster</b> Dashboard</p>
-        <p style="margin: 8px 0 0 0;">You are receiving this because you're part of our campus community.</p>
-        <p style="margin: 5px 0 0 0;">&copy; 2026 Cultural Committee</p>
+        <p style="margin: 0;">Sent via <b>MailMaster</b></p>
+        <p style="margin: 5px 0 0 0;">&copy; 2026 MailMaster</p>
       </div>
     </div>
   `;
@@ -67,15 +62,27 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-export const sendMail = async (to, subject, content) => {
+/**
+ * Unified send mail function - uses Nodemailer
+ */
+export const sendMail = async (to, subject, content, options = {}) => {
+  const { senderName = 'MailMaster' } = options;
   const htmlBody = formatEmailContent(content);
 
   const mailOptions = {
-    from: `"Mailing Prototype" <${emailUser}>`,
+    from: `"${senderName}" <${emailUser}>`,
     to,
     subject,
     html: htmlBody
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Mail sent to ${to}: ${info.messageId}`);
+    return info;
+  } catch (err) {
+    console.error(`❌ Mail send error for ${to}:`, err);
+    throw err;
+  }
 };
+

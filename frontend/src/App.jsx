@@ -8,6 +8,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import CampaignPage from "./pages/CampaignPage";
 import { EmailVerifierPage } from "./pages/EmailVerifier";
+import Settings from "./pages/Settings";
+import EditProfile from "./pages/EditProfile";
 
 // Layout & Route Guard
 import Layout from "./components/Layout";
@@ -28,6 +30,8 @@ function App() {
           {/* Campaign Routes */}
           <Route path="/campaigns" element={<CampaignPage />} />
           <Route path="/email-verifier" element={<EmailVerifierPage />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
         </Route>
       </Route>
 
