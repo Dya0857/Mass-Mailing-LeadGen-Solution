@@ -27,8 +27,14 @@ Tone: ${tone}
 
 Requirements:
 1. Each version must have a unique, catchy subject line.
-2. Each version must have a completely different structure and opening to avoid spam filters.
-3. Keep the content concise and high-converting.
+2. Be extremely CONCISE and DIRECT. Get straight to the point.
+3. Avoid all unnecessary fluff, long introductions, or generic marketing jargon.
+4. Focus strictly on the provided Context/Purpose.
+5. Format the output as a reusable template:
+   - Start with a greeting using the Target Audience (e.g., "Hello ${audience}," or "Hi ${audience},").
+   - DO NOT use {{Name}} in the greeting.
+   - Use {{Company}} for the sender's company name where appropriate.
+   - Use [Your Name] or {{SenderName}} for the signature.
 
 Return the response strictly as a valid JSON array of objects with the following format:
 [

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Papa from 'papaparse';
 import {
   Send,
@@ -29,6 +29,48 @@ export default function CampaignPage() {
   const [statusMsg, setStatusMsg] = useState('');
   const fileInputRef = useRef(null);
   const [sendingNow, setSendingNow] = useState(false);
+  const [templates, setTemplates] = useState([]);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    console.log("Fetching templates...");
+    try {
+      const res = await api.get("/users/profile");
+      console.log("Profile response received:", res);
+
+      if (res.data && Array.isArray(res.data.templates)) {
+        console.log("Templates found (" + res.data.templates.length + "):", res.data.templates);
+        setTemplates(res.data.templates);
+        if (res.data.templates.length === 0) {
+          setStatusMsg("⚠️ No templates found. Create one in Settings.");
+        } else {
+          setStatusMsg(""); // Clear any error msg
+        }
+      } else {
+        console.warn("Unexpected response format:", res.data);
+        setStatusMsg("⚠️ Invalid template data received.");
+      }
+    } catch (err) {
+      console.error("Failed to load templates. Error details:", err);
+      if (err.response) {
+        console.error("Response data:", err.response.data);
+        console.error("Response status:", err.response.status);
+        if (err.response.status === 404) {
+          setStatusMsg("❌ Backend API not found. Please RESTART your backend server.");
+        } else {
+          setStatusMsg(`❌ Error loading templates: ${err.response.status} ${err.response.statusText}`);
+        }
+      } else if (err.request) {
+        console.error("No response received:", err.request);
+        setStatusMsg("❌ Network error: No response from server.");
+      } else {
+        setStatusMsg(`❌ Error: ${err.message}`);
+      }
+    }
+  };
 
   // Form State
   const [form, setForm] = useState({
@@ -251,7 +293,7 @@ export default function CampaignPage() {
 
       <div className="row g-4">
         {/* Campaign Form with Tabs */}
-        <div className="col-12 col-lg-8">
+        <div className="col-12">
           <div className="card border-0 shadow-sm">
             <div className="card-header bg-transparent border-0 pt-4 px-4">
               <h5 className="card-title fw-semibold">Campaign Details</h5>
@@ -311,6 +353,45 @@ export default function CampaignPage() {
                       </div>
                     </>
                   )}
+
+                  {/* Template Selector for Manual/Edited Mode - ONLY show in Manual Tab */}
+                  {activeTab === 'manual' && (
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <label className="form-label fw-medium small text-secondary mb-0">Load Template (Optional)</label>
+                        <button
+                          type="button"
+                          className="btn btn-link p-0 text-decoration-none small"
+                          style={{ fontSize: '11px' }}
+                          onClick={fetchTemplates}
+                        >
+                          Refresh
+                        </button>
+                      </div>
+                      <select
+                        className="form-select form-select-sm"
+                        onChange={(e) => {
+                          const tId = e.target.value;
+                          if (!tId) return;
+                          const t = templates.find(temp => temp._id === tId);
+                          if (t) {
+                            setForm(prev => ({
+                              ...prev,
+                              subject: t.subject || prev.subject,
+                              content: t.body || prev.content
+                            }));
+                          }
+                        }}
+                        defaultValue=""
+                      >
+                        <option value="">-- Select a Template to Load --</option>
+                        {templates.map(t => (
+                          <option key={t._id} value={t._id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
 
                   <div>
                     <label className="form-label fw-medium small">Campaign Name</label>
@@ -517,6 +598,7 @@ export default function CampaignPage() {
                         onChange={(e) => setAiFormData({ ...aiFormData, keywords: e.target.value })}
                       />
                     </div>
+
                     <div className="col-12">
                       <label className="form-label fw-medium small">Context/Key Points</label>
                       <textarea
@@ -573,53 +655,7 @@ export default function CampaignPage() {
           </div>
         </div>
 
-        {/* Sidebar Analyzer/Tips */}
-        <div className="col-12 col-lg-4">
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-header bg-transparent border-0 pt-4 px-4">
-              <h5 className="card-title fw-semibold">Spam Score</h5>
-            </div>
-            <div className="card-body p-4 pt-0 text-center">
-              <div className={`display-4 fw-bold mb-0 ${getSpamScoreColor(spamScore)}`}>{spamScore}</div>
-              <p className="text-secondary small mb-3">out of 100</p>
-              <div className="progress mb-3" style={{ height: '8px' }}>
-                <div className={`progress-bar bg-${spamScore >= 80 ? 'success' : 'warning'}`} style={{ width: `${spamScore}%` }}></div>
-              </div>
-              <div className={`badge ${statusInfo.color} d-flex align-items-center justify-content-center py-2 px-3 border-0`}>
-                <StatusIcon size={16} className="me-2" /> {statusInfo.label}
-              </div>
 
-              <div className="mt-4 text-start d-flex flex-column gap-2">
-                <div className="p-2 bg-light rounded d-flex align-items-center gap-2">
-                  <CheckCircle size={14} className="text-success" />
-                  <span className="x-small text-dark" style={{ fontSize: '12px' }}>SPF/DKIM verified</span>
-                </div>
-                <div className="p-2 bg-light rounded d-flex align-items-center gap-2">
-                  <CheckCircle size={14} className="text-success" />
-                  <span className="x-small text-dark" style={{ fontSize: '12px' }}>Clean trigger words</span>
-                </div>
-                <div className="p-2 bg-light rounded d-flex align-items-center gap-2">
-                  <AlertCircle size={14} className="text-warning" />
-                  <span className="x-small text-dark" style={{ fontSize: '12px' }}>Subject line length (Optimal: 50)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card border-0 shadow-sm">
-            <div className="card-header bg-transparent border-0 pt-4 px-4">
-              <h5 className="card-title fw-semibold">Best Practices</h5>
-            </div>
-            <div className="card-body p-4 pt-0 d-flex flex-column gap-3">
-              <div className="p-3 bg-secondary bg-opacity-10 rounded">
-                <p className="small mb-0 text-dark">Personalize subject lines to boost open rates by 22%.</p>
-              </div>
-              <div className="p-3 bg-secondary bg-opacity-10 rounded">
-                <p className="small mb-0 text-dark">Tuesday at 10 AM is statistically the best sending time.</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

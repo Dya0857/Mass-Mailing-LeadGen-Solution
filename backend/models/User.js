@@ -44,6 +44,27 @@ const userSchema = new mongoose.Schema(
       enum: ["gmail", "zoho"],
       default: "gmail",
     },
+    // User defined email templates
+    templates: [
+      {
+        name: {
+          type: String,
+          required: true,
+        },
+        subject: {
+          type: String,
+          default: "",
+        },
+        body: {
+          type: String,
+          default: "",
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   { timestamps: true }
 );

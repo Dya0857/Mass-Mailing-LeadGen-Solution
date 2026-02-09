@@ -64,31 +64,8 @@ export default function Sidebar() {
           </button>
         </li>
 
-        {/* Sender Config */}
-        <li className="nav-item">
-          <button
-            className={`nav-link text-start ${isActive("/ses-config")
-              ? "bg-white text-primary"
-              : "text-white"
-              }`}
-            onClick={() => navigate("/ses-config")}
-          >
-            📧 Sender Config
-          </button>
-        </li>
 
-        {/* Lead Generator */}
-        <li className="nav-item">
-          <button
-            className={`nav-link text-start ${isActive("/lead-generator")
-              ? "bg-white text-primary"
-              : "text-white"
-              }`}
-            onClick={() => navigate("/lead-generator")}
-          >
-            👥 Lead Generator
-          </button>
-        </li>
+
 
         {/* Reports */}
         <li className="nav-item">
