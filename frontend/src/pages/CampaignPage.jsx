@@ -31,46 +31,40 @@ export default function CampaignPage() {
   const [sendingNow, setSendingNow] = useState(false);
   const [templates, setTemplates] = useState([]);
 
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  const fetchTemplates = async () => {
-    console.log("Fetching templates...");
+  async function fetchTemplates() {
     try {
-      const res = await api.get("/users/profile");
-      console.log("Profile response received:", res);
+      const res = await api.get("/campaign/templates");
 
-      if (res.data && Array.isArray(res.data.templates)) {
-        console.log("Templates found (" + res.data.templates.length + "):", res.data.templates);
-        setTemplates(res.data.templates);
-        if (res.data.templates.length === 0) {
-          setStatusMsg("⚠️ No templates found. Create one in Settings.");
-        } else {
-          setStatusMsg(""); // Clear any error msg
-        }
+      if (res.data && Array.isArray(res.data)) {
+        setTemplates(res.data);
+        setStatusMsg("");
       } else {
-        console.warn("Unexpected response format:", res.data);
+        console.warn("[CampaignPage] Unexpected response format:", res.data);
         setStatusMsg("⚠️ Invalid template data received.");
       }
     } catch (err) {
-      console.error("Failed to load templates. Error details:", err);
+      console.error("[CampaignPage] Failed to load templates:", err);
       if (err.response) {
-        console.error("Response data:", err.response.data);
-        console.error("Response status:", err.response.status);
-        if (err.response.status === 404) {
-          setStatusMsg("❌ Backend API not found. Please RESTART your backend server.");
-        } else {
-          setStatusMsg(`❌ Error loading templates: ${err.response.status} ${err.response.statusText}`);
-        }
+        // The server responded with a status code that falls out of the range of 2xx
+        setStatusMsg(`❌ Server Error: ${err.response.status} - ${err.response.data?.message || err.response.statusText}`);
       } else if (err.request) {
-        console.error("No response received:", err.request);
-        setStatusMsg("❌ Network error: No response from server.");
+        // The request was made but no response was received
+        setStatusMsg("❌ Network Error: No response from server. Check if backend is running.");
       } else {
+        // Something happened in setting up the request that triggered an Error
         setStatusMsg(`❌ Error: ${err.message}`);
       }
     }
-  };
+  }
+
+  useEffect(() => {
+    console.log("[CampaignPage] Component mounted, waiting 100ms for auth state...");
+    const timer = setTimeout(() => {
+      console.log("[CampaignPage] Initial load triggered after delay");
+      fetchTemplates();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Form State
   const [form, setForm] = useState({
@@ -278,6 +272,7 @@ export default function CampaignPage() {
       </div>
 
       {/* Search Bar */}
+
       <div className="mb-4">
         <div className="position-relative" style={{ maxWidth: '400px' }}>
           <Search size={18} className="position-absolute start-0 top-50 translate-middle-y ms-3 text-secondary" />
@@ -413,12 +408,12 @@ export default function CampaignPage() {
                       onChange={(e) => setForm({ ...form, emailProvider: e.target.value })}
                     >
                       <option value="gmail">Gmail (Default)</option>
-                      <option value="zoho">Zoho Mail</option>
+                      <option value="ses">Amazon SES</option>
                     </select>
-                    {form.emailProvider === 'zoho' && (
+                    {form.emailProvider === 'ses' && (
                       <p className="small text-info mt-1 mb-0">
-                        <AlertCircle size={12} className="me-1" />
-                        Make sure your Zoho account is connected in Settings
+                        <AlertTriangle size={12} className="me-1" />
+                        Ensure your AWS credentials are set in backend/.env
                       </p>
                     )}
                   </div>

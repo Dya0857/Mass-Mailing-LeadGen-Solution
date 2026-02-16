@@ -12,6 +12,7 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: "user",
   });
 
   const [msg, setMsg] = useState("");
@@ -33,6 +34,7 @@ export default function Register() {
         company: user.company,
         email: user.email,
         password: user.password,
+        role: user.role,
       });
 
       setMsg("Registration successful! Redirecting to login...");
@@ -119,6 +121,20 @@ export default function Register() {
                 }
                 required
               />
+            </div>
+
+            <div className="reg-input">
+              <select
+                value={user.role}
+                onChange={(e) =>
+                  setUser({ ...user, role: e.target.value })
+                }
+                required
+                className="reg-select"
+              >
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
 
             <button className="reg-btn" type="submit" disabled={loading}>

@@ -4,6 +4,7 @@ import {
   getCampaigns,
   sendTestEmail,
   sendNow,
+  getGlobalTemplates,
 } from "../controllers/campaignController.js";
 import { protect } from "../middlewares/authMiddleware.js";
 
@@ -12,6 +13,8 @@ const router = express.Router();
 router.post("/create", protect, createCampaign);
 router.post("/test-email", protect, sendTestEmail);
 router.post("/send-now", protect, sendNow);
+router.get("/templates", protect, getGlobalTemplates);
 router.get("/", protect, getCampaigns);
+
 
 export default router;

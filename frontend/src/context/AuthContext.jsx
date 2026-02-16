@@ -4,7 +4,17 @@ import { createContext, useContext, useState } from "react";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const rawUser = localStorage.getItem("user");
+      if (rawUser && rawUser !== "undefined" && rawUser !== "null") {
+        return JSON.parse(rawUser);
+      }
+    } catch (err) {
+      console.error("Error parsing user from localStorage in AuthContext", err);
+    }
+    return null;
+  });
   const [token, setToken] = useState(localStorage.getItem("token"));
 
   const login = async ({ email, password }) => {
@@ -18,6 +28,10 @@ export function AuthProvider({ children }) {
     if (!res.ok) throw new Error(data.message || "Login failed");
 
     localStorage.setItem("token", data.token);
+    if (data.user) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+    }
     setToken(data.token);
 
     return true;
@@ -25,12 +39,13 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setUser(null);
     setToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout }}>
+    <AuthContext.Provider value={{ token, user, setUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

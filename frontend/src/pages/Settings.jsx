@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
-
+import { useAuth } from "../context/AuthContext";
 import "../styles/Settings.css";
 import api from "../service/api";
 import { Plus, Trash2, Edit2, Save, X } from "lucide-react";
 
 const TemplateManager = () => {
+    const { user } = useAuth();
     const [templates, setTemplates] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
     const [currentTemplate, setCurrentTemplate] = useState({ name: "", subject: "", body: "" });
     const [msg, setMsg] = useState("");
+
+    const userRole = user?.role || "user";
 
     useEffect(() => {
         fetchTemplates();
@@ -65,7 +68,7 @@ const TemplateManager = () => {
         <div className="settings-card">
             <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3>My Templates</h3>
-                {!isEditing && (
+                {!isEditing && userRole === "admin" && (
                     <button
                         className="btn btn-sm btn-primary d-flex align-items-center"
                         onClick={() => {
@@ -131,24 +134,26 @@ const TemplateManager = () => {
                                     <div className="fw-bold text-dark">{t.name}</div>
                                     <div className="small text-secondary">{t.subject || "(No subject)"}</div>
                                 </div>
-                                <div className="d-flex gap-2">
-                                    <button
-                                        className="btn btn-sm btn-outline-secondary p-1"
-                                        onClick={() => {
-                                            setCurrentTemplate(t);
-                                            setIsEditing(true);
-                                            setMsg("");
-                                        }}
-                                    >
-                                        <Edit2 size={14} />
-                                    </button>
-                                    <button
-                                        className="btn btn-sm btn-outline-danger p-1"
-                                        onClick={() => handleDelete(t._id)}
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
+                                {userRole === "admin" && (
+                                    <div className="d-flex gap-2">
+                                        <button
+                                            className="btn btn-sm btn-outline-secondary p-1"
+                                            onClick={() => {
+                                                setCurrentTemplate(t);
+                                                setIsEditing(true);
+                                                setMsg("");
+                                            }}
+                                        >
+                                            <Edit2 size={14} />
+                                        </button>
+                                        <button
+                                            className="btn btn-sm btn-outline-danger p-1"
+                                            onClick={() => handleDelete(t._id)}
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     )}
@@ -159,9 +164,12 @@ const TemplateManager = () => {
 };
 
 const Settings = () => {
+    const { user } = useAuth();
     const [aiSettings, setAiSettings] = useState({
         defaultVariationCount: 7, // Optimized for 1000-2000 recipients
     });
+
+    const userRole = user?.role || "user";
 
     useEffect(() => {
         // Load AI settings from localStorage
@@ -191,40 +199,44 @@ const Settings = () => {
 
 
                     {/* AI Assistant Settings */}
-                    <div className="settings-card">
-                        <h3>🤖 AI Assistant Settings</h3>
-                        <div className="settings-option">
-                            <label className="setting-label">
-                                <span className="label-text">Default Number of Variations</span>
-                                <p className="label-description">
-                                    Default number of email variations to generate. For 1000-2000 recipients,
-                                    use 7-10 variations to avoid spam filters.
-                                </p>
-                            </label>
-                            <div className="input-group">
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="10"
-                                    value={aiSettings.defaultVariationCount}
-                                    onChange={(e) =>
-                                        handleAiSettingsChange(
-                                            "defaultVariationCount",
-                                            parseInt(e.target.value) || 7
-                                        )
-                                    }
-                                    className="number-input"
-                                />
-                                <span className="input-hint">variations (recommended: 7-10 for large lists)</span>
+                    {userRole?.toLowerCase() === "admin" && (
+                        <div className="settings-card">
+                            <h3>🤖 AI Assistant Settings</h3>
+                            <div className="settings-option">
+                                <label className="setting-label">
+                                    <span className="label-text">Default Number of Variations</span>
+                                    <p className="label-description">
+                                        Default number of email variations to generate. For 1000-2000 recipients,
+                                        use 7-10 variations to avoid spam filters.
+                                    </p>
+                                </label>
+                                <div className="input-group">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="10"
+                                        value={aiSettings.defaultVariationCount}
+                                        onChange={(e) =>
+                                            handleAiSettingsChange(
+                                                "defaultVariationCount",
+                                                parseInt(e.target.value) || 7
+                                            )
+                                        }
+                                        className="number-input"
+                                    />
+                                    <span className="input-hint">variations (recommended: 7-10 for large lists)</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </section>
 
-                <section style={{ marginTop: "20px" }}>
-                    <h2 style={{ marginBottom: "20px", color: "#00695c", borderBottom: "2px solid #eee", paddingBottom: "10px" }}>📄 Email Templates</h2>
-                    <TemplateManager />
-                </section>
+                {userRole?.toLowerCase() === "admin" && (
+                    <section style={{ marginTop: "20px" }}>
+                        <h2 style={{ marginBottom: "20px", color: "#00695c", borderBottom: "2px solid #eee", paddingBottom: "10px" }}>📄 Email Templates</h2>
+                        <TemplateManager />
+                    </section>
+                )}
 
 
             </div>

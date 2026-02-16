@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { sendSESEmail } from "./sesMailer.js";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -66,9 +67,16 @@ const transporter = nodemailer.createTransport({
  * Unified send mail function - uses Nodemailer
  */
 export const sendMail = async (to, subject, content, options = {}) => {
-  const { senderName = 'MailMaster' } = options;
+  const { senderName = 'MailMaster', provider = 'gmail' } = options;
   const htmlBody = formatEmailContent(content);
 
+  console.log(`📧 Sending mail via provider: ${provider}`);
+
+  if (provider === 'ses' || provider === 'amazon') {
+    return sendSESEmail(to, subject, htmlBody, senderName);
+  }
+
+  // Default: Nodemailer (Gmail)
   const mailOptions = {
     from: `"${senderName}" <${emailUser}>`,
     to,

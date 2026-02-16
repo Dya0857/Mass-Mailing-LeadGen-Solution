@@ -3,13 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Mail, ShieldCheck, CheckCircle2, BarChart2 } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import api from "../service/api";
+import { useAuth } from "../context/AuthContext";
 import "../styles/auth.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState("user");
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,8 +23,12 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await api.post("/auth/login", { email, password });
+      const res = await api.post("/auth/login", { email, password, role: selectedRole });
       localStorage.setItem("token", res.data.token);
+      if (res.data.user) {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        setUser(res.data.user);
+      }
       navigate("/dashboard");
     } catch (err) {
       setMsg(err.response?.data?.message || "Invalid email or password");
@@ -43,8 +50,13 @@ export default function Login() {
     try {
       const res = await api.post("/auth/google", {
         credential: response.credential,
+        role: selectedRole,
       });
       localStorage.setItem("token", res.data.token);
+      if (res.data.user) {
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        setUser(res.data.user);
+      }
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
@@ -82,6 +94,24 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          <label>Login As</label>
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="role-select"
+            style={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '15px',
+              borderRadius: '8px',
+              border: '1px solid #ddd',
+              backgroundColor: '#fff'
+            }}
+          >
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
 
           <button className="btn-main" disabled={loading}>
             {loading ? "Signing in..." : "Sign In →"}

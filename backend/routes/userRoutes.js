@@ -1,15 +1,26 @@
 import express from "express";
-import { updateUserProfile, getUserProfile } from "../controllers/userController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import {
+    updateUserProfile,
+    getUserProfile,
+    addTemplate,
+    deleteTemplate,
+    updateTemplate,
+    getGlobalTemplates
+} from "../controllers/userController.js";
+import { protect, admin } from "../middlewares/authMiddleware.js";
 import upload from "../middlewares/uploadMiddleware.js";
 
 const router = express.Router();
 
-router.route("/profile").get(protect, getUserProfile).put(protect, upload.single("avatar"), updateUserProfile);
+router.get("/profile", protect, getUserProfile);
+router.put("/profile", protect, upload.single("avatar"), updateUserProfile);
 
-import { addTemplate, deleteTemplate, updateTemplate } from "../controllers/userController.js";
+// Global templates should be accessible to all logged in users
+router.get("/global-templates", protect, getGlobalTemplates);
 
-router.route("/templates").post(protect, addTemplate);
-router.route("/templates/:id").delete(protect, deleteTemplate).put(protect, updateTemplate);
+router.post("/templates", protect, admin, addTemplate);
+router.route("/templates/:id")
+    .delete(protect, admin, deleteTemplate)
+    .put(protect, admin, updateTemplate);
 
 export default router;

@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../service/api";
+import { useAuth } from "../context/AuthContext";
 
 export default function GoogleCallback() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   useEffect(() => {
     async function verifyGoogleLogin() {
@@ -22,6 +24,10 @@ export default function GoogleCallback() {
 
         // Save JWT from backend
         localStorage.setItem("token", res.data.token);
+        if (res.data.user) {
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          setUser(res.data.user);
+        }
 
         // Redirect user
         navigate("/dashboard");

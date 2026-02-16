@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "../styles/Settings.css";
 
 const EditProfile = () => {
     const navigate = useNavigate();
-    const [user, setUser] = useState(null);
+    const { user, setUser } = useAuth();
     const [formData, setFormData] = useState({
         name: "",
         email: "", // Read-only
@@ -14,15 +15,15 @@ const EditProfile = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const userInfo = JSON.parse(localStorage.getItem("user") || "{}");
-        setUser(userInfo);
-        setFormData({
-            name: userInfo.name || "",
-            email: userInfo.email || "",
-            avatar: userInfo.avatar || "",
-            password: ""
-        });
-    }, []);
+        if (user) {
+            setFormData({
+                name: user?.name || "",
+                email: user?.email || "",
+                avatar: user?.avatar || "",
+                password: ""
+            });
+        }
+    }, [user]);
 
     const handleProfileUpdate = async (e) => {
         e.preventDefault();
@@ -88,7 +89,7 @@ const EditProfile = () => {
                                 />
                             ) : (
                                 <div style={{ width: "80px", height: "80px", borderRadius: "50%", backgroundColor: "#00695c", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "32px", marginRight: "15px" }}>
-                                    {user?.name?.charAt(0).toUpperCase()}
+                                    {(user?.name?.charAt(0) || "U").toUpperCase()}
                                 </div>
                             )}
                             <div>
@@ -144,13 +145,9 @@ const EditProfile = () => {
                                 style={{ width: '100%' }}
                             />
                         </div>
-
-                        <div style={{ marginTop: "25px", display: "flex", gap: "10px" }}>
+                        <div style={{ marginTop: "25px" }}>
                             <button type="submit" className="btn-primary" disabled={loading} style={{ background: '#00695c', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
                                 {loading ? "Saving..." : "Save Changes"}
-                            </button>
-                            <button type="button" className="btn-secondary" onClick={() => navigate("/settings")}>
-                                Go to Settings
                             </button>
                         </div>
                     </form>

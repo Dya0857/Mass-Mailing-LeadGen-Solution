@@ -178,7 +178,34 @@ export const sendNow = async (req, res) => {
       campaign,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Campaign sending failed" });
+  }
+};
+
+/**
+ * GET GLOBAL TEMPLATES (From all admins)
+ */
+import User from "../models/User.js";
+export const getGlobalTemplates = async (req, res) => {
+  try {
+    const admins = await User.find({ role: { $regex: /^admin$/i } }).select("templates");
+    let allTemplates = [];
+
+    admins.forEach(admin => {
+      if (admin.templates && admin.templates.length > 0) {
+        const plainTemplates = admin.templates.map(t => ({
+          _id: t._id,
+          name: t.name,
+          subject: t.subject || "",
+          body: t.body || ""
+        }));
+        allTemplates = [...allTemplates, ...plainTemplates];
+      }
+    });
+
+    res.json(allTemplates);
+  } catch (err) {
+    console.error("Error in getGlobalTemplates:", err);
+    res.status(500).json({ message: "Error fetching templates" });
   }
 };

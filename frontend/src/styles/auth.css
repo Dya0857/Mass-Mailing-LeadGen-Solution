@@ -103,7 +103,8 @@
 .link-btn {
   background: none;
   border: none;
-  color: rgb(37, 101, 240);          /* 🔥 make it white */
+  color: rgb(37, 101, 240);
+  /* 🔥 make it white */
   margin-left: 6px;
   cursor: pointer;
   font-weight: 500;
@@ -117,7 +118,8 @@
   color: rgb(37, 101, 240);
   background: none;
   outline: none;
-  text-decoration: underline; /* optional */
+  text-decoration: underline;
+  /* optional */
 }
 
 
@@ -168,4 +170,21 @@
     padding: 50px 30px;
     text-align: center;
   }
+}
+
+.reg-select {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  font-size: 14px;
+  background-color: white;
+  transition: border 0.2s ease;
+  cursor: pointer;
+}
+
+.reg-select:focus {
+  outline: none;
+  border-color: #0d6efd;
 }
