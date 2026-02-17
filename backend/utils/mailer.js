@@ -9,16 +9,16 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
-const emailUser = process.env.EMAIL_USER?.trim();
-const emailPass = process.env.EMAIL_PASS?.trim();
+const emailUser = (process.env.SES_SMTP_USER || process.env.EMAIL_USER)?.trim();
+const emailPass = (process.env.SES_SMTP_PASS || process.env.EMAIL_PASS)?.trim();
 
-console.log('Email User status:', emailUser ? 'Creds Loaded ✅' : 'Creds NOT Found ❌');
+console.log("Email User status:", emailUser ? "Creds Loaded ✅" : "Creds NOT Found ❌");
 
 /**
  * HELPER: Convert plain text/markdown to branded HTML
  */
 const formatEmailContent = (content) => {
-  let formatted = content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+  let formatted = content.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
 
   formatted = formatted.replace(/\[CTA Button: (.*?)\]/gi, (match, btnText) => {
     return `
@@ -30,7 +30,7 @@ const formatEmailContent = (content) => {
     `;
   });
 
-  formatted = formatted.replace(/\r?\n/g, '<br/>');
+  formatted = formatted.replace(/\r?\n/g, "<br/>");
 
   return `
     <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.8; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
@@ -50,24 +50,24 @@ const formatEmailContent = (content) => {
   `;
 };
 
+/**
+ * SES SMTP Transporter
+ */
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // true for 465, false for 587
+  host: process.env.SES_HOST,
+  port: process.env.SES_PORT,
+  secure: false,
   auth: {
     user: emailUser,
-    pass: emailPass
+    pass: emailPass,
   },
-  tls: {
-    rejectUnauthorized: false
-  }
 });
 
 /**
- * Unified send mail function - uses Nodemailer
+ * Default export function
  */
-export const sendMail = async (to, subject, content, options = {}) => {
-  const { senderName = 'MailMaster', provider = 'gmail' } = options;
+const sendMail = async (to, subject, content, options = {}) => {
+  const { senderName = "MailMaster", provider = 'gmail' } = options;
   const htmlBody = formatEmailContent(content);
 
   console.log(`📧 Sending mail via provider: ${provider}`);
@@ -78,10 +78,10 @@ export const sendMail = async (to, subject, content, options = {}) => {
 
   // Default: Nodemailer (Gmail)
   const mailOptions = {
-    from: `"${senderName}" <${emailUser}>`,
+    from: `"${senderName}" <${process.env.FROM_EMAIL || process.env.EMAIL_USER}>`,
     to,
     subject,
-    html: htmlBody
+    html: htmlBody,
   };
 
   try {
@@ -94,3 +94,4 @@ export const sendMail = async (to, subject, content, options = {}) => {
   }
 };
 
+export default sendMail;

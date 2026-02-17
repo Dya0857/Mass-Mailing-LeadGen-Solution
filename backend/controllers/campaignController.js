@@ -1,5 +1,5 @@
 import Campaign from "../models/Campaign.js";
-import { sendMail } from "../utils/mailer.js";
+import sendMail from "../utils/mailer.js";
 
 /**
  * HELPER: Send mails with randomized variations

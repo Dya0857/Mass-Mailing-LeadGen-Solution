@@ -1,4 +1,4 @@
-import { sendMail } from "./utils/mailer.js";
+import sendMail from "./utils/mailer.js";
 
 async function testMailer() {
     console.log("🧪 Starting SMTP test...");

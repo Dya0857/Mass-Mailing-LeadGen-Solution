@@ -10,6 +10,9 @@ import campaignRoutes from "./routes/campaignRoutes.js";
 import emailListRoutes from "./routes/emailListRoutes.js";
 import aiRoutes from "./routes/geminiRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import testMailRoutes from "./routes/testMail.js";
+
+
 
 // dotenv.config() removed as it is handled by import 'dotenv/config'
 connectDB();
@@ -26,6 +29,8 @@ app.use("/api/campaign", campaignRoutes);
 app.use("/api/email-lists", emailListRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/test-mail", testMailRoutes);
+
 
 // Make uploads folder static
 import path from "path";
