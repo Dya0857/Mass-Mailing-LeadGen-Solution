@@ -4,9 +4,10 @@ async function testMailer() {
     console.log("🧪 Starting SMTP test...");
     try {
         const result = await sendMail(
-            "test@example.com", // Change this to your email for manual test
+            "petkardhyeyaja@gmail.com",
             "Test SMTP Subject",
-            "This is a test email sent via Nodemailer SMTP. **Bold text** and [CTA Button: Click Me]"
+            "This is a test email sent via Nodemailer SMTP. **Bold text** and [CTA Button: Click Me]",
+            { provider: 'ses' }
         );
         console.log("✅ Test successful:", result.messageId);
     } catch (err) {

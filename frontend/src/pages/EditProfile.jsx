@@ -41,7 +41,7 @@ const EditProfile = () => {
                 formDataToSend.append("avatar", formData.avatar);
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/users/profile`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:5005"}/api/users/profile`, {
                 method: "PUT",
                 headers: {
                     Authorization: `Bearer ${token}`

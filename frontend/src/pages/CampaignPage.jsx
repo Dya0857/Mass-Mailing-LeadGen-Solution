@@ -28,12 +28,15 @@ export default function CampaignPage() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
   const fileInputRef = useRef(null);
+  const imageFileInputRef = useRef(null); // Ref for image upload
+  const contentRef = useRef(null); // Add ref for textarea
   const [sendingNow, setSendingNow] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false); // Add sendingTest state
   const [templates, setTemplates] = useState([]);
 
   async function fetchTemplates() {
     try {
-      const res = await api.get("/campaign/templates");
+      const res = await api.get("campaign/templates");
 
       if (res.data && Array.isArray(res.data)) {
         setTemplates(res.data);
@@ -77,7 +80,8 @@ export default function CampaignPage() {
     scheduleDate: "",
     scheduleTime: "",
     recipients: [],
-    emailProvider: "gmail", // Add email provider selection
+    emailProvider: "ses", // Default to SES
+
   });
 
 
@@ -132,7 +136,7 @@ export default function CampaignPage() {
     setStatusMsg('');
 
     try {
-      const res = await api.post("/ai/generate-campaign", aiFormData);
+      const res = await api.post("ai/generate-campaign", aiFormData);
       const variations = res.data.variations || [];
 
       if (Array.isArray(variations) && variations.length > 0) {
@@ -214,7 +218,7 @@ export default function CampaignPage() {
     setStatusMsg("");
 
     try {
-      await api.post("/campaign/create", {
+      await api.post("campaign/create", {
         ...form,
         variations: generatedVariations.length > 0 ? generatedVariations : [{ subject: form.subject, body: form.content }],
         mode: activeTab,
@@ -244,7 +248,7 @@ export default function CampaignPage() {
         mode: activeTab,
       };
 
-      const res = await api.post("/campaign/send-now", payload);
+      const res = await api.post("campaign/send-now", payload);
       const { results } = res.data;
 
       if (results) {
@@ -258,6 +262,113 @@ export default function CampaignPage() {
       setStatusMsg(err.response?.data?.message || "❌ Failed to send mails");
     } finally {
       setSendingNow(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    setStatusMsg("");
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    // DEBUG: Log FormData contents
+    console.log("Uploading file:", file.name, file.size, file.type);
+    for (let [key, value] of formData.entries()) {
+      console.log(`FormData Entry - ${key}:`, value);
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const baseUrl = "http://localhost:5005/api/"; // Match api.js baseUrl
+
+      const response = await fetch(`${baseUrl}campaign/upload-image`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          // DO NOT set Content-Type, browser will set it with boundary
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.imageUrl) {
+        console.log("Image upload success. URL:", data.imageUrl);
+        const imgTag = `<img src="${data.imageUrl}" alt="uploaded-image" style="max-width: 100%; height: auto;" />`;
+        insertAtCursor(imgTag);
+        setStatusMsg("✅ Image uploaded and inserted");
+      } else {
+        throw new Error(data.message || "Upload failed");
+      }
+    } catch (err) {
+      console.error("Image upload failed detailed error:", err);
+      setStatusMsg(`❌ Image upload failed: ${err.message}`);
+    } finally {
+      setLoading(false);
+      // Reset input so the same file can be selected again if deleted
+      if (imageFileInputRef.current) imageFileInputRef.current.value = "";
+    }
+  };
+
+  const handleAddImage = () => {
+    imageFileInputRef.current.click();
+  };
+
+  const handleInsertLink = () => {
+    const url = prompt("Enter Link URL (e.g., https://example.com):");
+    if (!url) return;
+    const text = prompt("Enter Link Text:", "Click here");
+    const linkTag = `<a href="${url}" target="_blank" rel="noopener noreferrer">${text || url}</a>`;
+    insertAtCursor(linkTag);
+  };
+
+  const insertAtCursor = (textToInsert) => {
+    const textarea = contentRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const oldContent = form.content;
+    const newContent = oldContent.substring(0, start) + textToInsert + oldContent.substring(end);
+
+    setForm(prev => ({ ...prev, content: newContent }));
+
+    // Update variations if in AI mode
+    if (generatedVariations.length > 0) {
+      const newVars = [...generatedVariations];
+      newVars[selectedVariationIndex].body = newContent;
+      setGeneratedVariations(newVars);
+    }
+
+    // Set cursor position after insertion (needs timeout for React to update)
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
+    }, 0);
+  };
+
+  const handleSendTest = async () => {
+    const testEmail = prompt("Enter email address to send test to:");
+    if (!testEmail) return;
+
+    setSendingTest(true);
+    setStatusMsg("");
+
+    try {
+      await api.post("campaign/test-email", {
+        subject: form.subject,
+        content: form.content,
+        testEmail: testEmail,
+      });
+      setStatusMsg(`✅ Test email sent to ${testEmail}`);
+    } catch (err) {
+      setStatusMsg(err.response?.data?.message || "❌ Failed to send test email");
+    } finally {
+      setSendingTest(false);
     }
   };
 
@@ -399,24 +510,8 @@ export default function CampaignPage() {
                     />
                   </div>
 
-                  {/* Email Provider Selection */}
-                  <div>
-                    <label className="form-label fw-medium small">Email Provider</label>
-                    <select
-                      className="form-select"
-                      value={form.emailProvider}
-                      onChange={(e) => setForm({ ...form, emailProvider: e.target.value })}
-                    >
-                      <option value="gmail">Gmail (Default)</option>
-                      <option value="ses">Amazon SES</option>
-                    </select>
-                    {form.emailProvider === 'ses' && (
-                      <p className="small text-info mt-1 mb-0">
-                        <AlertTriangle size={12} className="me-1" />
-                        Ensure your AWS credentials are set in backend/.env
-                      </p>
-                    )}
-                  </div>
+                  {/* Email Provider Selection Removed - Defaulting to SES */}
+
 
                   {/* CSV Upload */}
                   <div>
@@ -426,6 +521,13 @@ export default function CampaignPage() {
                       ref={fileInputRef}
                       onChange={onFileChange}
                       accept=".csv"
+                      className="d-none"
+                    />
+                    <input
+                      type="file"
+                      ref={imageFileInputRef}
+                      onChange={handleImageUpload}
+                      accept="image/*"
                       className="d-none"
                     />
                     <button className="btn btn-outline-primary flex-grow-1 d-flex align-items-center justify-content-center" onClick={handleUploadCSV}>
@@ -465,6 +567,7 @@ export default function CampaignPage() {
                         className="form-control"
                         rows="8"
                         placeholder="Compose your message..."
+                        ref={contentRef}
                         value={form.content}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -477,8 +580,8 @@ export default function CampaignPage() {
                         }}
                       ></textarea>
                       <div className="d-flex gap-2 mt-2">
-                        <button className="btn btn-sm btn-light border text-secondary">Add Image</button>
-                        <button className="btn btn-sm btn-light border text-secondary">Insert Link</button>
+                        <button type="button" className="btn btn-sm btn-light border text-secondary" onClick={handleAddImage}>Add Image</button>
+                        <button type="button" className="btn btn-sm btn-light border text-secondary" onClick={handleInsertLink}>Insert Link</button>
                       </div>
                     </div>
 
@@ -530,8 +633,14 @@ export default function CampaignPage() {
                         {sendingNow ? "Sending..." : "Send Mails Now"}
                       </button>
                       {activeTab !== 'ai' && (
-                        <button className="btn btn-outline-secondary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center">
-                          <TestTube size={18} className="me-2" /> Send Test
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center"
+                          onClick={handleSendTest}
+                          disabled={sendingTest || loading}
+                        >
+                          {sendingTest ? <Loader2 size={18} className="me-2 animate-spin" /> : <TestTube size={18} className="me-2" />}
+                          {sendingTest ? "Sending..." : "Send Test"}
                         </button>
                       )}
                     </div>

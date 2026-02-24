@@ -11,10 +11,16 @@ import emailListRoutes from "./routes/emailListRoutes.js";
 import aiRoutes from "./routes/geminiRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import testMailRoutes from "./routes/testMail.js";
+import cron from "node-cron";
+import { processCampaigns } from "./jobs/campaignJob.js";
 
+// ...
+// connectDB(); called earlier
 
-
-// dotenv.config() removed as it is handled by import 'dotenv/config'
+// Initialize Cron Job for Email Scheduling (Runs every minute)
+cron.schedule("* * * * *", () => {
+  processCampaigns();
+});
 connectDB();
 
 const app = express();
@@ -34,10 +40,21 @@ app.use("/api/test-mail", testMailRoutes);
 
 // Make uploads folder static
 import path from "path";
-const __dirname = path.resolve();
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-const PORT = process.env.PORT || 5000;
+// Global Error Handler
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode).json({
+    message: err.message,
+    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
+  });
+});
+
+const PORT = process.env.PORT || 5005;
 app.listen(PORT, () =>
   console.log(`Server running on port ${PORT}`)
 );

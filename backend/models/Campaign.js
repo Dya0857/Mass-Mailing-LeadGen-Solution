@@ -49,7 +49,7 @@ const campaignSchema = new mongoose.Schema(
 
     emailProvider: {
       type: String,
-      enum: ["gmail", "zoho"],
+      enum: ["gmail", "zoho", "ses"],
       default: "gmail",
     },
 

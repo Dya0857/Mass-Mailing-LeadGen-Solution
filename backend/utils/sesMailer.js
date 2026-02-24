@@ -33,7 +33,7 @@ export const sendSESEmail = async (to, subject, htmlBody, senderName = "MailMast
                 Data: subject,
             },
         },
-        Source: `"${senderName}" <${process.env.EMAIL_USER}>`, // SES requires verified sender. Using the same EMAIL_USER for now.
+        Source: `"${senderName}" <${process.env.FROM_EMAIL || process.env.EMAIL_USER}>`, // SES requires verified sender.
     };
 
     try {

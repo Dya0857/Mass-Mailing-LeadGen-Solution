@@ -54,13 +54,22 @@ export const createCampaign = async (req, res) => {
       content,
       variations,
       emailList,
+      recipients,
       scheduleDate,
       scheduleTime,
       emailProvider = 'gmail',
     } = req.body;
 
-    if (!name || !subject || !senderName || !content || !emailList) {
-      return res.status(400).json({ message: "Required fields missing" });
+
+
+    if (!name) return res.status(400).json({ message: "Campaign Name is required" });
+    if (!subject) return res.status(400).json({ message: "Subject is required" });
+    if (!senderName) return res.status(400).json({ message: "Sender Name is required" });
+    if (!content) return res.status(400).json({ message: "Email Content is required" });
+
+    // Check for either emailListId or direct recipients
+    if (!emailList && (!recipients || recipients.length === 0)) {
+      return res.status(400).json({ message: "Please upload an email list or provide recipients" });
     }
 
     let scheduleAt = null;
@@ -75,11 +84,12 @@ export const createCampaign = async (req, res) => {
       name,
       mode,
       subject,
-      previewText,
+      previewText: previewText || "",
       senderName,
       content,
       variations,
-      emailList,
+      emailList: emailList || "DIRECT_RECIPIENTS",
+      recipients: recipients || [],
       scheduleAt,
       status,
       emailProvider,
@@ -121,10 +131,16 @@ export const sendTestEmail = async (req, res) => {
     return res.status(400).json({ message: "Missing test email data" });
   }
 
-  // 👉 integrate nodemailer / SendGrid here
-  console.log("Sending test email to:", testEmail);
-
-  res.json({ message: "Test email sent successfully" });
+  try {
+    await sendMail(testEmail, subject, content, {
+      senderName: "MailMaster Test",
+      userId: req.user.id
+    });
+    res.json({ message: "Test email sent successfully" });
+  } catch (err) {
+    console.error("Test email failed:", err);
+    res.status(500).json({ message: "Failed to send test email" });
+  }
 };
 
 /**
@@ -144,7 +160,7 @@ export const sendNow = async (req, res) => {
     } = req.body;
 
     if (!name || !senderName || !recipients || recipients.length === 0) {
-      return res.status(400).json({ message: "Required fields missing (name, senderName, recipients)" });
+      return res.status(400).json({ message: "Required fields missing for Send Now (name, senderName, recipients)" });
     }
 
     const campaign = await Campaign.create({
@@ -207,5 +223,28 @@ export const getGlobalTemplates = async (req, res) => {
   } catch (err) {
     console.error("Error in getGlobalTemplates:", err);
     res.status(500).json({ message: "Error fetching templates" });
+  }
+};
+
+/**
+ * UPLOAD IMAGE
+ */
+export const uploadImage = async (req, res) => {
+  try {
+    console.log("[uploadImage] DEBUG - Request Method:", req.method);
+    console.log("[uploadImage] DEBUG - Request Headers:", JSON.stringify(req.headers, null, 2));
+    console.log("[uploadImage] DEBUG - req.file:", req.file);
+    console.log("[uploadImage] DEBUG - req.body:", req.body);
+
+    if (!req.file) {
+      console.warn("[uploadImage] No file received. Check if 'image' field is present in multiparty form data.");
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+    console.log("[uploadImage] Upload successful, returning URL:", imageUrl);
+    res.json({ imageUrl });
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    res.status(500).json({ message: "Image upload failed" });
   }
 };

@@ -1,4 +1,5 @@
 import Campaign from "../models/Campaign.js";
+import { sendCampaignMails } from "../controllers/campaignController.js";
 
 export const processCampaigns = async () => {
   try {
@@ -7,23 +8,34 @@ export const processCampaigns = async () => {
       scheduleAt: { $lte: new Date() },
     });
 
+    if (campaigns.length > 0) {
+      console.log(`🕒 Cron Job: Found ${campaigns.length} scheduled campaigns to process.`);
+    }
+
     for (const campaign of campaigns) {
-      // Mark as sending
-      campaign.status = "sending";
-      await campaign.save();
+      try {
+        // Mark as sending
+        campaign.status = "sending";
+        await campaign.save();
 
-      /*
-        🔔 SEND EMAILS HERE
-        - Fetch email list
-        - Loop recipients
-        - Use nodemailer / SES / SendGrid
-      */
+        console.log(`📨 Processing scheduled campaign: ${campaign.name} for ${campaign.recipients.length} recipients.`);
 
-      console.log(`📨 Sending campaign: ${campaign.name}`);
+        // Use the existing sending logic from the controller
+        // We pass campaign.createdBy as the userId for mailer configuration
+        const results = await sendCampaignMails(campaign, campaign.createdBy);
 
-      // After successful send
-      campaign.status = "completed";
-      await campaign.save();
+        console.log(`✅ Finished scheduled campaign: ${campaign.name}. Success: ${results.success.length}, Failure: ${results.failure.length}`);
+
+        // After successful process
+        campaign.status = "completed";
+        await campaign.save();
+      } catch (err) {
+        console.error(`❌ Error processing campaign ${campaign._id}:`, err);
+        // Maybe revert status to scheduled or mark as failed? 
+        // For now, let's keep it in "sending" or mark as "draft" to avoid infinite loop if it fails before sendCampaignMails
+        campaign.status = "draft";
+        await campaign.save();
+      }
     }
   } catch (error) {
     console.error("Campaign job error:", error);
