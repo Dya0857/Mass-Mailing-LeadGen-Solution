@@ -65,21 +65,6 @@ export default function Sidebar() {
         </li>
 
 
-
-
-        {/* Reports */}
-        <li className="nav-item">
-          <button
-            className={`nav-link text-start ${isActive("/reports")
-              ? "bg-white text-primary"
-              : "text-white"
-              }`}
-            onClick={() => navigate("/reports")}
-          >
-            📊 Reports
-          </button>
-        </li>
-
         {/* Profile */}
         <li className="nav-item">
           <button

@@ -17,11 +17,15 @@ export const uploadEmailListFromCSV = async (req, res) => {
             header.replace("\uFEFF", "").trim(), // ✅ BOM-safe
         })
       )
-      .on("data", (row) => {
-        if (row.email) {
-          emails.push(row.email.trim());
-        }
-      })
+.on("data", (row) => {
+  if (row.email) {
+    recipients.push({
+      email: row.email.trim(),
+      firstName: row.firstName?.trim() || "",
+      company: row.company?.trim() || ""
+    });
+  }
+})
       .on("end", async () => {
         fs.unlinkSync(req.file.path); // cleanup
 
@@ -32,10 +36,10 @@ export const uploadEmailListFromCSV = async (req, res) => {
         }
 
         const emailList = await EmailList.create({
-          name: req.body.name || "CSV Email List",
-          emails,
-          createdBy: req.user.id,
-        });
+  name: req.body.name || "CSV Email List",
+  recipients,
+  createdBy: req.user.id,
+});
 
         res.status(201).json({
           message: "Email list created successfully",

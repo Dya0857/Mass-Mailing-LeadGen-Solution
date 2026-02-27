@@ -12,8 +12,6 @@ import aiRoutes from "./routes/geminiRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import testMailRoutes from "./routes/testMail.js";
 
-
-
 // dotenv.config() removed as it is handled by import 'dotenv/config'
 connectDB();
 

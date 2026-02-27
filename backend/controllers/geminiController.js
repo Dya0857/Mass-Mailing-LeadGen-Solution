@@ -28,13 +28,16 @@ Tone: ${tone}
 Requirements:
 1. Each version must have a unique, catchy subject line.
 2. Be extremely CONCISE and DIRECT. Get straight to the point.
-3. Avoid all unnecessary fluff, long introductions, or generic marketing jargon.
-4. Focus strictly on the provided Context/Purpose.
-5. Format the output as a reusable template:
+3. Focus strictly on the provided Context/Purpose.
+4. Format the output as a reusable template:
    - Start with a greeting using the Target Audience (e.g., "Hello ${audience}," or "Hi ${audience},").
    - DO NOT use {{Name}} in the greeting.
    - Use {{Company}} for the sender's company name where appropriate.
    - Use [Your Name] or {{SenderName}} for the signature.
+5. Talk a bit more about the benefits and value proposition of the product/service in the body.
+6. make the email more engaging and persuasive, with a clear call to action.
+7. make the email in more detailed.
+
 
 Return the response strictly as a valid JSON array of objects with the following format:
 [

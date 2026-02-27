@@ -25,25 +25,8 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
     },
-    // Zoho OAuth fields
-    zohoAccessToken: {
-      type: String,
-    },
-    zohoRefreshToken: {
-      type: String,
-    },
-    zohoTokenExpiry: {
-      type: Date,
-    },
-    zohoEmail: {
-      type: String,
-      default: "",
-    },
-    preferredEmailProvider: {
-      type: String,
-      enum: ["gmail", "zoho"],
-      default: "gmail",
-    },
+
+    
     // User defined email templates
     templates: [
       {
