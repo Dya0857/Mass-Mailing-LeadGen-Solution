@@ -22,7 +22,7 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
-      navigate("/dashboard");
+      navigate("/campaigns");
     } catch (err) {
       setMsg(err.response?.data?.message || "Invalid email or password");
     } finally {
@@ -45,7 +45,7 @@ export default function Login() {
         credential: response.credential,
       });
       localStorage.setItem("token", res.data.token);
-      navigate("/dashboard");
+      navigate("/campaigns");
     } catch (err) {
       console.error(err);
       setMsg("Google login failed");

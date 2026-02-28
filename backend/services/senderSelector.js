@@ -1,24 +1,45 @@
 import Mailbox from "../models/Mailbox.js";
 
 export const pickMailboxForCampaign = async (userId) => {
-  console.log("Looking mailboxes for:", userId);
 
-  const mailboxes = await Mailbox.find({ userId });
+  // 🔥 TEMPORARY HARDCODED MAILBOXES
+  const tempMailboxes = [
+    {
+      email: "sales@trad-eats.com",
+      name: "Sales Team",
+      dailyLimit: 50,
+      sentToday: 0,
+      reputationScore: 100,
+      status: "active"
+    },
+    {
+      email: "support@trad-eats.com",
+      name: "Support Team",
+      dailyLimit: 50,
+      sentToday: 0,
+      reputationScore: 100,
+      status: "active"
+    },
+    {
+      email: "noreply@trad-eats.com",
+      name: "Hello Team",
+      dailyLimit: 50,
+      sentToday: 0,
+      reputationScore: 100,
+      status: "active"
+    }
+  ];
 
-  console.log("Found:", mailboxes.length);
-
-  const healthy = mailboxes.filter(
+  // Random rotation
+  const healthy = tempMailboxes.filter(
     (m) =>
       m.status === "active" &&
       m.sentToday < m.dailyLimit &&
       m.reputationScore > 0
   );
 
-  console.log("Healthy count:", healthy.length);
-
   if (!healthy.length) return null;
 
-  healthy.sort((a, b) => b.reputationScore - a.reputationScore);
-
-  return healthy[0];
+  const randomIndex = Math.floor(Math.random() * healthy.length);
+  return healthy[randomIndex];
 };

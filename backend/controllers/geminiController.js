@@ -17,33 +17,29 @@ export const generateCampaignAI = async (req, res) => {
   }
 
   const prompt = `
-You are an expert email marketing copywriter.
+You are an expert high-conversion email marketing strategist. Your goal is to write sophisticated, long-form persuasive copy.
 
-Generate ${variationCount} distinct versions of a ${campaignType} email for the following campaign:
-Context/Purpose: ${context}
-Target Audience: ${audience}
-Keywords to include: ${keywords}
-Tone: ${tone}
+Generate distinct versions of an email for the following campaign:
+- Purpose: [Insert Context/Purpose here]
+- Audience: [Insert Target Audience here]
+- Essential Keywords: [Insert Keywords here]
+- Voice/Tone: [Insert Tone here]
+- Number of Variations: [Insert Count here]
 
-Requirements:
-1. Each version must have a unique, catchy subject line.
-2. Be extremely CONCISE and DIRECT. Get straight to the point.
-3. Focus strictly on the provided Context/Purpose.
-4. Format the output as a reusable template:
-   - Start with a greeting using the Target Audience (e.g., "Hello ${audience}," or "Hi ${audience},").
-   - DO NOT use {{Name}} in the greeting.
-   - Use {{Company}} for the sender's company name where appropriate.
-   - Use [Your Name] or {{SenderName}} for the signature.
-5. Talk a bit more about the benefits and value proposition of the product/service in the body.
-6. make the email more engaging and persuasive, with a clear call to action.
-7. make the email in more detailed.
+STRATEGIC REQUIREMENTS:
+1. NARRATIVE DEPTH: Avoid being brief. Deep-dive into the specific pain points the audience faces and explain exactly how the solution provides relief. 
+2. VALUE PROPOSITION: Do not just list features. Articulate the "transformation"—describe the state of the user before and after using the product/service.
+3. PERSUASIVE HOOKS: Start each email with a powerful "hook" (a question, a shocking statistic, or a relatable struggle) to ensure immediate engagement.
+4. GREETING: Address the audience directly (e.g., "Hello [Target Audience],"). Do NOT use personal name tags like {{Name}}.
+5. STRUCTURE: Use a sophisticated flow: Hook -> Empathy/Problem -> The "Big Idea" -> Benefit Bullets -> Social Proof/Trust -> Clear, singular Call to Action.
+6. FORMATTING: Use {{Company}} for the sender's company and {{SenderName}} for the signature.
 
-
-Return the response strictly as a valid JSON array of objects with the following format:
+OUTPUT FORMAT:
+Return the response STRICTLY as a valid JSON array of objects. No preamble or conversational text.
 [
   {
-    "subject": "Variation subject",
-    "body": "Variation body text"
+    "subject": "A catchy, curiosity-driven subject line",
+    "body": "The detailed, multi-paragraph persuasive email body..."
   }
 ]
 `;

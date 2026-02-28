@@ -11,6 +11,9 @@ const ses = new SESClient({
   },
 });
 
+/**
+ * Format content into styled HTML
+ */
 const formatEmailContent = (content) => {
   let formatted = content.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
   formatted = formatted.replace(/\r?\n/g, "<br/>");
@@ -22,11 +25,23 @@ const formatEmailContent = (content) => {
   `;
 };
 
+/**
+ * Send email via AWS SES
+ */
 const sendMail = async (to, subject, content, options = {}) => {
   const htmlBody = formatEmailContent(content);
 
+  // 🔥 Dynamic sender support
+  const { senderEmail, senderName } = options;
+
+  const fromEmail = senderEmail || process.env.FROM_EMAIL;
+
+  const formattedFrom = senderName
+    ? `"${senderName}" <${fromEmail}>`
+    : fromEmail;
+
   const params = {
-    Source: process.env.FROM_EMAIL,
+    Source: formattedFrom,
     Destination: {
       ToAddresses: [to],
     },
