@@ -8,7 +8,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "@aws-sdk/client-ses": "^3.996.0",
+    "@aws-sdk/client-ses": "^3.1000.0",
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.4",
     "bcryptjs": "^2.4.3",
@@ -18,11 +18,12 @@
     "express": "^4.19.2",
     "google-auth-library": "^10.5.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.5.0",
+    "mongoose": "^8.23.0",
     "multer": "^2.0.2",
-    "nodemailer": "^6.9.9",
+    "nodemailer": "^8.0.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "quill": "^2.0.3",
     "react-quill": "^2.0.0"
   },
   "devDependencies": {
