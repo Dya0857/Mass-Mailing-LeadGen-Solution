@@ -5,25 +5,9 @@ export const pickMailboxForCampaign = async (userId) => {
   // 🔥 TEMPORARY HARDCODED MAILBOXES
   const tempMailboxes = [
     {
-      email: "sales@trad-eats.com",
-      name: "Sales Team",
-      dailyLimit: 50,
-      sentToday: 0,
-      reputationScore: 100,
-      status: "active"
-    },
-    {
-      email: "support@trad-eats.com",
-      name: "Support Team",
-      dailyLimit: 50,
-      sentToday: 0,
-      reputationScore: 100,
-      status: "active"
-    },
-    {
-      email: "noreply@trad-eats.com",
-      name: "Hello Team",
-      dailyLimit: 50,
+      email: process.env.FROM_EMAIL || "petkardhyeyaja@gmail.com",
+      name: "Master Mailer",
+      dailyLimit: 200,
       sentToday: 0,
       reputationScore: 100,
       status: "active"

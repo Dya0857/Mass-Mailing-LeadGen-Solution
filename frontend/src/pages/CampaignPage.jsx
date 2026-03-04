@@ -22,6 +22,7 @@ export default function CampaignPage() {
   const [sendingNow, setSendingNow] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [attachments, setAttachments] = useState([]);
+  const [sendingTest, setSendingTest] = useState(false);
 
   useEffect(() => { fetchTemplates(); }, []);
 
@@ -51,7 +52,8 @@ export default function CampaignPage() {
     scheduleDate: "",
     scheduleTime: "",
     recipients: [],
-    emailProvider: "gmail",
+    batchSize: 500,
+    batchDelay: 10,
   });
 
   const [aiFormData, setAiFormData] = useState(() => {
@@ -127,10 +129,17 @@ export default function CampaignPage() {
     setLoading(true);
     setStatusMsg("");
     try {
+      let scheduleAt = null;
+      if (form.scheduleDate && form.scheduleTime) {
+        scheduleAt = new Date(`${form.scheduleDate}T${form.scheduleTime}`).toISOString();
+      }
+
       await api.post("/campaign/create", {
         ...form,
+        emailList: form.recipients.length > 0 ? "CSV_UPLOAD" : "",
         variations: generatedVariations.length > 0 ? generatedVariations : [{ subject: form.subject, body: form.content }],
         mode: activeTab,
+        scheduleAt, // Send pre-calculated ISO timestamp
       });
       setStatusMsg("✅ Campaign scheduled successfully");
     } catch (err) {
@@ -156,6 +165,31 @@ export default function CampaignPage() {
     } catch (err) {
       setStatusMsg(err.response?.data?.message || "❌ Failed to send mails");
     } finally { setSendingNow(false); }
+  };
+
+  const handleSendTest = async () => {
+    if (!form.subject || !form.content) {
+      setStatusMsg("❌ Subject and body are required for test email");
+      return;
+    }
+
+    const testEmail = prompt("Enter email address for test:");
+    if (!testEmail) return;
+
+    setSendingTest(true);
+    setStatusMsg("");
+    try {
+      await api.post("/campaign/test-email", {
+        subject: form.subject,
+        content: form.content,
+        testEmail: testEmail
+      });
+      setStatusMsg(`✅ Test email sent to ${testEmail} successfully`);
+    } catch (err) {
+      setStatusMsg(err.response?.data?.message || "❌ Failed to send test email");
+    } finally {
+      setSendingTest(false);
+    }
   };
 
   // ── Stable callbacks for editor ───────────────────────────────────────────
@@ -229,22 +263,6 @@ export default function CampaignPage() {
           value={form.name} onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))} />
       </div>
 
-      {/* Email provider */}
-      <div>
-        <label className="form-label fw-medium small">Email Provider</label>
-        <select className="form-select" value={form.emailProvider}
-          onChange={e => setForm(prev => ({ ...prev, emailProvider: e.target.value }))}>
-          <option value="gmail">Gmail (Default)</option>
-          <option value="zoho">Zoho Mail</option>
-        </select>
-        {form.emailProvider === 'zoho' && (
-          <p className="small text-info mt-1 mb-0">
-            <AlertCircle size={12} className="me-1" />
-            Make sure your Zoho account is connected in Settings
-          </p>
-        )}
-      </div>
-
       {/* CSV upload */}
       <div>
         <label className="form-label fw-medium small">Upload Email List (CSV)</label>
@@ -306,6 +324,26 @@ export default function CampaignPage() {
         </div>
       </div>
 
+      {/* Batching */}
+      <div className="row g-3">
+        <div className="col-md-6">
+          <label className="form-label fw-medium small">Batch Size (Recipients)</label>
+          <input type="number" className="form-control" placeholder="500" value={form.batchSize}
+            onChange={e => setForm(prev => ({ ...prev, batchSize: parseInt(e.target.value) || 0 }))} />
+        </div>
+        <div className="col-md-6">
+          <label className="form-label fw-medium small">Wait Time (Minutes)</label>
+          <input type="number" className="form-control" placeholder="10" value={form.batchDelay}
+            onChange={e => setForm(prev => ({ ...prev, batchDelay: parseInt(e.target.value) || 0 }))} />
+        </div>
+        <div className="col-12 mt-1">
+          <p className="text-secondary mb-0" style={{ fontSize: '11px' }}>
+            <AlertCircle size={12} className="me-1 inline" />
+            Batching helps prevent your emails from being flagged as spam by spacing out delivery.
+          </p>
+        </div>
+      </div>
+
       {statusMsg && (
         <div className={`alert ${statusMsg.includes('✅') ? 'alert-success' : 'alert-danger'} py-2 small`}>
           {statusMsg}
@@ -314,13 +352,11 @@ export default function CampaignPage() {
 
       {/* Action buttons */}
       <div className="d-flex gap-3 pt-3">
-        {activeTab !== 'ai' && (
-          <button className="btn btn-primary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center"
-            onClick={handleSubmit} disabled={loading}>
-            {loading ? <Loader2 size={18} className="me-2 animate-spin" /> : <Send size={18} className="me-2" />}
-            {loading ? "Scheduling..." : "Schedule Campaign"}
-          </button>
-        )}
+        <button className="btn btn-primary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center"
+          onClick={handleSubmit} disabled={loading}>
+          {loading ? <Loader2 size={18} className="me-2 animate-spin" /> : <Send size={18} className="me-2" />}
+          {loading ? "Scheduling..." : "Schedule Campaign"}
+        </button>
         <button
           className="btn btn-success px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center text-white border-0"
           onClick={handleSendNow} disabled={sendingNow || loading}
@@ -328,11 +364,14 @@ export default function CampaignPage() {
           {sendingNow ? <Loader2 size={18} className="me-2 animate-spin" /> : <Send size={18} className="me-2" />}
           {sendingNow ? "Sending..." : "Send Mails Now"}
         </button>
-        {activeTab !== 'ai' && (
-          <button className="btn btn-outline-secondary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center">
-            <TestTube size={18} className="me-2" /> Send Test
-          </button>
-        )}
+        <button
+          className="btn btn-outline-secondary px-4 py-2 flex-grow-1 d-flex align-items-center justify-content-center"
+          onClick={handleSendTest}
+          disabled={sendingTest || loading}
+        >
+          {sendingTest ? <Loader2 size={18} className="me-2 animate-spin" /> : <TestTube size={18} className="me-2" />}
+          {sendingTest ? "Sending..." : "Send Test"}
+        </button>
       </div>
     </div>
   );
@@ -400,7 +439,7 @@ export default function CampaignPage() {
                     </div>
                     <div className="col-md-6">
                       <label className="form-label fw-medium small">Variation Count</label>
-                      <input type="number" className="form-control shadow-none" min="1" max="5"
+                      <input type="number" className="form-control shadow-none" min="1" max="10"
                         value={aiFormData.variationCount}
                         onChange={e => setAiFormData(prev => ({ ...prev, variationCount: parseInt(e.target.value) || 1 }))} />
                     </div>

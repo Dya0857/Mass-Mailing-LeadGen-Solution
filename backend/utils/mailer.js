@@ -1,13 +1,15 @@
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const ses = new SESClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+const transporter = nodemailer.createTransport({
+  host: process.env.SES_HOST || "email-smtp.eu-north-1.amazonaws.com",
+  port: parseInt(process.env.SES_PORT) || 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.SES_SMTP_USER,
+    pass: process.env.SES_SMTP_PASS,
   },
 });
 
@@ -29,35 +31,25 @@ const formatEmailContent = (content) => {
  * Send email via AWS SES
  */
 const sendMail = async (to, subject, content, options = {}) => {
+  const { senderEmail, senderName } = options;
   const htmlBody = formatEmailContent(content);
 
-  // 🔥 Dynamic sender support
-  const { senderEmail, senderName } = options;
-
   const fromEmail = senderEmail || process.env.FROM_EMAIL;
-
   const formattedFrom = senderName
     ? `"${senderName}" <${fromEmail}>`
     : fromEmail;
 
-  const params = {
-    Source: formattedFrom,
-    Destination: {
-      ToAddresses: [to],
-    },
-    Message: {
-      Subject: { Data: subject },
-      Body: {
-        Html: { Data: htmlBody },
-      },
-    },
+  const mailOptions = {
+    from: formattedFrom,
+    to: to,
+    subject: subject,
+    html: htmlBody,
   };
 
   try {
-    const command = new SendEmailCommand(params);
-    const response = await ses.send(command);
-    console.log("SES Mail sent:", response.MessageId);
-    return response;
+    const info = await transporter.sendMail(mailOptions);
+    console.log("SES Mail sent:", info.messageId);
+    return info;
   } catch (error) {
     console.error("SES Error:", error);
     throw error;

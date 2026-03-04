@@ -1,56 +1,98 @@
 import { generateWithGemini } from "../utils/gemini.js";
 
 export const generateCampaignAI = async (req, res) => {
-  const {
-    context,
-    audience,
-    keywords,
-    tone = "Professional",
-    campaignType = "promotion",
-    variationCount = 7
-  } = req.body;
+  try {
+    const {
+      context,
+      audience,
+      keywords,
+      tone = "Professional",
+      campaignType = "promotion",
+      variationCount = 7
+    } = req.body;
 
-  if (!context || !audience) {
-    return res.status(400).json({
-      message: "Context and audience are required"
-    });
-  }
+    if (!context || !audience) {
+      return res.status(400).json({
+        message: "Context and audience are required"
+      });
+    }
 
-  const prompt = `
-You are an expert high-conversion email marketing strategist. Your goal is to write sophisticated, long-form persuasive copy.
+    const prompt = `
+You are a helpful assistant writing a personal, one-on-one email.
 
-Generate distinct versions of an email for the following campaign:
-- Purpose: [Insert Context/Purpose here]
-- Audience: [Insert Target Audience here]
-- Essential Keywords: [Insert Keywords here]
-- Voice/Tone: [Insert Tone here]
-- Number of Variations: [Insert Count here]
+TASK:
+Generate EXACTLY ${variationCount} high-quality ${campaignType} email variations.
 
-STRATEGIC REQUIREMENTS:
-1. NARRATIVE DEPTH: Avoid being brief. Deep-dive into the specific pain points the audience faces and explain exactly how the solution provides relief. 
-2. VALUE PROPOSITION: Do not just list features. Articulate the "transformation"—describe the state of the user before and after using the product/service.
-3. PERSUASIVE HOOKS: Start each email with a powerful "hook" (a question, a shocking statistic, or a relatable struggle) to ensure immediate engagement.
-4. GREETING: Address the audience directly (e.g., "Hello [Target Audience],"). Do NOT use personal name tags like {{Name}}.
-5. STRUCTURE: Use a sophisticated flow: Hook -> Empathy/Problem -> The "Big Idea" -> Benefit Bullets -> Social Proof/Trust -> Clear, singular Call to Action.
-6. FORMATTING: Use {{Company}} for the sender's company and {{SenderName}} for the signature.
+CAMPAIGN DETAILS:
+- Context / Purpose: ${context}
+- Target Audience: ${audience}
+- Keywords to include (naturally): ${keywords || "None"}
+- Tone: Conversational and Personal
+
+INBOX OPTIMIZATION RULES (TO LAND IN PRIMARY TAB):
+1. TONE: Write like a real person sending a helpful note to another person. Avoid "marketing-speak" or sounding like a sales pitch.
+2. TRIGGER WORDS: DO NOT use promotional trigger words such as: "Promotion," "Sale," "Offer," "Deal," "Discount," "Limited Time," "Act Now," or "Free."
+3. MINIMAL HTML: Use only basic HTML to maintain a personal feel:
+   - Use <p> tags for paragraphs.
+   - Use <br> for line breaks.
+   - AVOID <strong> tags, <ul>/<li> lists, or complex formatting unless strictly necessary for clarity.
+4. VARIATION: Each variation MUST have a different personal angle or hook.
+5. START: Begin with a warm, natural greeting:
+   <p>Hello ${audience},</p>
+6. END: Finish with a personal sign-off:
+   <p>Best regards,<br>{{SenderName}}</p>
+
+CONTENT REQUIREMENTS:
+- Provide meaningful detail and value based on the Context.
+- Focus on being helpful and informative.
+- Use a mix of short and longer paragraphs to mimic natural writing.
+- Strong but natural call-to-action (CTA).
 
 OUTPUT FORMAT:
-Return the response STRICTLY as a valid JSON array of objects. No preamble or conversational text.
+Return ONLY a valid JSON array.
+No explanation.
+No markdown.
+No code blocks.
+
+Format:
 [
   {
-    "subject": "A catchy, curiosity-driven subject line",
-    "body": "The detailed, multi-paragraph persuasive email body..."
+    "subject": "Subject line here",
+    "body": "Personal, conversational email body (mainly using <p> and <br>)"
   }
 ]
 `;
 
-  try {
     const rawContent = await generateWithGemini(prompt);
-    const jsonStr = rawContent.replace(/```json|```/g, "").trim();
+
+    // Clean markdown formatting if model adds code blocks
+    let jsonStr = rawContent.trim();
+
+    if (jsonStr.includes("```")) {
+      jsonStr = jsonStr
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+    }
+
+    const startIndex = jsonStr.indexOf("[");
+    const endIndex = jsonStr.lastIndexOf("]");
+
+    if (startIndex === -1 || endIndex === -1) {
+      throw new Error("Invalid JSON format returned from AI");
+    }
+
+    jsonStr = jsonStr.substring(startIndex, endIndex + 1);
+
     const variations = JSON.parse(jsonStr);
-    res.json({ variations });
+
+    return res.status(200).json({ variations });
+
   } catch (err) {
-    console.error("Gemini error:", err.message);
-    res.status(500).json({ message: "AI generation failed" });
+    console.error("Gemini error:", err);
+    return res.status(500).json({
+      message: "AI generation failed",
+      error: err.message
+    });
   }
 };

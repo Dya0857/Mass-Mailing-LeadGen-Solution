@@ -1,4 +1,7 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import path from "path";
+const __dirname = path.resolve();
+dotenv.config({ path: path.join(__dirname, ".env") });
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import express from "express";
 import cors from "cors";
@@ -11,7 +14,8 @@ import emailListRoutes from "./routes/emailListRoutes.js";
 import aiRoutes from "./routes/geminiRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import testMailRoutes from "./routes/testMail.js";
-
+import { processCampaigns } from "./jobs/campaignJob.js";
+dotenv.config();
 // dotenv.config() removed as it is handled by import 'dotenv/config'
 connectDB();
 
@@ -31,11 +35,13 @@ app.use("/api/test-mail", testMailRoutes);
 
 
 // Make uploads folder static
-import path from "path";
-const __dirname = path.resolve();
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () =>
-  console.log(`Server running on port ${PORT}`)
-);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+
+  // Start background job for scheduled campaigns (runs every 1 minute)
+  setInterval(processCampaigns, 60 * 1000);
+  console.log("🕒 Background job started (1m interval)");
+});

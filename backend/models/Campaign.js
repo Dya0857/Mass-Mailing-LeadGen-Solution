@@ -41,16 +41,13 @@ const campaignSchema = new mongoose.Schema(
 
     scheduleAt: { type: Date, default: null },
 
+    batchSize: { type: Number, default: 500 },
+    batchDelay: { type: Number, default: 0 }, // in minutes
+
     status: {
       type: String,
       enum: ["draft", "scheduled", "sending", "completed"],
       default: "draft",
-    },
-
-    emailProvider: {
-      type: String,
-      enum: ["gmail", "zoho"],
-      default: "gmail",
     },
 
     createdBy: {

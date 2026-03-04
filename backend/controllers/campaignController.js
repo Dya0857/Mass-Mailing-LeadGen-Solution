@@ -6,55 +6,70 @@ import { pickMailboxForCampaign } from "../services/senderSelector.js";
  * HELPER: Send mails with randomized variations + mailbox rotation
  */
 export const sendCampaignMails = async (campaign, userId) => {
-  const { recipients, variations, senderName } = campaign;
+  const { recipients, variations, senderName, batchSize = 500, batchDelay = 0 } = campaign;
   const results = { success: [], failure: [] };
 
   if (!recipients || recipients.length === 0) return results;
 
   console.log(
-    `🚀 Starting campaign "${campaign.name}" with ${
-      variations?.length || 0
-    } variations for ${recipients.length} recipients.`
+    `🚀 Starting campaign "${campaign.name}" with ${variations?.length || 0
+    } variations for ${recipients.length} recipients. Batch Size: ${batchSize}, Delay: ${batchDelay}m`
   );
 
-  for (const person of recipients) {
-    // If recipients are stored as plain email strings
-    const email = typeof person === "string" ? person : person.email;
+  // Group recipients into batches
+  for (let i = 0; i < recipients.length; i += batchSize) {
+    const batch = recipients.slice(i, i + batchSize);
+    console.log(`📦 Processing batch ${Math.floor(i / batchSize) + 1} (${batch.length} recipients)`);
 
-    // Pick random variation
-    let subject = campaign.subject;
-    let body = campaign.content;
-    let varIdx = -1;
+    const batchPromises = batch.map(async (person) => {
+      const email = typeof person === "string" ? person : person.email;
 
-    if (variations && variations.length > 0) {
-      varIdx = Math.floor(Math.random() * variations.length);
-      subject = variations[varIdx].subject || subject;
-      body = variations[varIdx].body || body;
-    }
+      // Pick random variation
+      let subject = campaign.subject;
+      let body = campaign.content;
+      let varIdx = -1;
 
-    try {
-      // 🔥 ROTATION PER RECIPIENT
-      const mailbox = await pickMailboxForCampaign(userId);
-
-      if (!mailbox) {
-        console.log("❌ No healthy mailbox available");
-        results.failure.push({ email, error: "No healthy mailbox available" });
-        continue;
+      if (variations && variations.length > 0) {
+        varIdx = Math.floor(Math.random() * variations.length);
+        subject = variations[varIdx].subject || subject;
+        body = variations[varIdx].body || body;
       }
 
-      await sendMail(email, subject, body, {
-        senderEmail: mailbox.email,
-        senderName: senderName || mailbox.name || "MailMaster",
-      });
+      try {
+        const mailbox = await pickMailboxForCampaign(userId);
 
-      results.success.push(email);
+        if (!mailbox) {
+          console.log("❌ No healthy mailbox available");
+          return { email, success: false, error: "No healthy mailbox available" };
+        }
 
-      console.log(
-        `✅ Sent (Var ${varIdx + 1}) from ${mailbox.email} → ${email}`
-      );
-    } catch (err) {
-      results.failure.push({ email, error: err.message });
-      console.error(`❌ Failed to ${email}:`, err.message);
+        await sendMail(email, subject, body, {
+          senderEmail: mailbox.email,
+          senderName: senderName || mailbox.name || "MailMaster",
+        });
+
+        console.log(`✅ Sent (Var ${varIdx + 1}) from ${mailbox.email} → ${email}`);
+        return { email, success: true };
+      } catch (err) {
+        console.error(`❌ Failed to ${email}:`, err.message);
+        return { email, success: false, error: err.message };
+      }
+    });
+
+    const batchResults = await Promise.all(batchPromises);
+
+    batchResults.forEach(res => {
+      if (res.success) {
+        results.success.push(res.email);
+      } else {
+        results.failure.push({ email: res.email, error: res.error });
+      }
+    });
+
+    // Wait if there are more batches
+    if (i + batchSize < recipients.length && batchDelay > 0) {
+      console.log(`⏳ Waiting ${batchDelay} minutes before next batch...`);
+      await new Promise(resolve => setTimeout(resolve, batchDelay * 60 * 1000));
     }
   }
 
@@ -75,19 +90,29 @@ export const createCampaign = async (req, res) => {
       content,
       variations,
       emailList,
+      recipients,
+      scheduleAt: scheduleAtFromClient,
       scheduleDate,
       scheduleTime,
-      emailProvider = "gmail",
+      batchSize,
+      batchDelay,
     } = req.body;
 
-    if (!name || !subject || !senderName || !content || !emailList) {
-      return res.status(400).json({ message: "Required fields missing" });
+    const missing = [];
+    if (!name) missing.push("name");
+    if (!subject) missing.push("subject");
+    if (!senderName) missing.push("senderName");
+    if (!content) missing.push("content");
+    if (!emailList) missing.push("emailList");
+
+    if (missing.length > 0) {
+      return res.status(400).json({ message: `Required fields missing: ${missing.join(", ")}` });
     }
 
-    let scheduleAt = null;
-    let status = "draft";
+    let scheduleAt = scheduleAtFromClient ? new Date(scheduleAtFromClient) : null;
+    let status = scheduleAt ? "scheduled" : "draft";
 
-    if (scheduleDate && scheduleTime) {
+    if (!scheduleAt && scheduleDate && scheduleTime) {
       scheduleAt = new Date(`${scheduleDate}T${scheduleTime}`);
       status = "scheduled";
     }
@@ -101,9 +126,11 @@ export const createCampaign = async (req, res) => {
       content,
       variations,
       emailList,
+      recipients,
       scheduleAt,
+      batchSize: batchSize || 500,
+      batchDelay: batchDelay || 0,
       status,
-      emailProvider,
       createdBy: req.user.id,
     });
 
@@ -174,13 +201,24 @@ export const sendNow = async (req, res) => {
       content,
       variations,
       recipients,
-      emailProvider = "gmail",
+      batchSize,
+      batchDelay,
     } = req.body;
 
-    if (!name || !senderName || !recipients || recipients.length === 0) {
+    const missing = [];
+    if (!name) missing.push("name");
+    if (!senderName) missing.push("senderName");
+    if (!recipients || recipients.length === 0) missing.push("recipients");
+
+    if (missing.length > 0) {
       return res.status(400).json({
-        message: "Required fields missing (name, senderName, recipients)",
+        message: `Required fields missing: ${missing.join(", ")}`,
       });
+    }
+
+    // subject is often derived from AI variations, but lets ensure we have one
+    if (!subject && (!variations || variations.length === 0 || !variations[0].subject)) {
+      return res.status(400).json({ message: "Subject is required (either in form or AI variations)" });
     }
 
     const campaign = await Campaign.create({
@@ -191,9 +229,10 @@ export const sendNow = async (req, res) => {
       content: content || (variations?.[0]?.body || ""),
       variations,
       recipients,
+      batchSize: batchSize || 500,
+      batchDelay: batchDelay || 0,
       status: "sending",
       emailList: "CSV_UPLOAD",
-      emailProvider,
       createdBy: req.user.id,
     });
 
